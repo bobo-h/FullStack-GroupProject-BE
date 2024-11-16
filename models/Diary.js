@@ -5,6 +5,7 @@ const diarySchema = Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     title: { type: String, required: true },
     content: { type: String, required: true },
+    image: { type: String, required: true },
     selectedDate: { type: Date, required: true },
     mood: { type: Schema.Types.ObjectId, ref: "Mood", required: true },
     comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
