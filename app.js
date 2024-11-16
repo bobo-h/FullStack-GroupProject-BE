@@ -7,7 +7,7 @@ require("dotenv").config();
 
 const app = express();
 const allowedOrigins = [
-  "https://shopping-mall-1st.netlify.app",
+  "https://meowmemo.netlify.app",
   "http://localhost:3000",
 ];
 const corsOptions = {
