@@ -1,6 +1,6 @@
-const diaryController = {};
+// const diaryController = {};
 
-diaryController.createDiary = async (req, res) => {
-  try {
-  } catch (error) {}
-};
+// diaryController.createDiary = async (req, res) => {
+//   try {
+//   } catch (error) {}
+// };
