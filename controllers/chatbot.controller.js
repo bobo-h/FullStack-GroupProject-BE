@@ -100,7 +100,7 @@ chabotController.createPrintLine = async(req, res) => {
       reply = reply.substring(0, 10); 
     }
 
-    //console.log(reply); 
+    console.log(reply); 
 
     res.status(200).json({ reply });
 
@@ -109,8 +109,6 @@ chabotController.createPrintLine = async(req, res) => {
     res.status(400).json({ error: "AI request failed", rawError: error });
   }
 };
-
-
 
 
 module.exports = chabotController;
