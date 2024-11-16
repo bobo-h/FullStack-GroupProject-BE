@@ -5,12 +5,15 @@ require("dotenv").config();
 const { OAuth2Client } = require("google-auth-library");
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const dayjs = require("dayjs"); // 날짜 계산을 위해 dayjs 사용
 const authController = {};
 
+//이메일로 로그인
 authController.loginWithEmail = async (req, res) => {
   try {
     const { email, password } = req.body;
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email, isDeleted: false });
+
     if (user) {
       const isMatch = await bcrpyt.compare(password, user.password);
       if (isMatch) {
@@ -34,8 +37,36 @@ authController.loginWithGoogle = async (req, res) => {
       audience: GOOGLE_CLIENT_ID,
     });
     const { email, name } = ticket.getPayload();
-    let user = await User.findOne({ email });
-    if (!user) {
+    let users = await User.find({ email });
+
+    // isDeleted가 true인 구글 사용자(회원탈퇴) 중
+    // 업데이트일(회원탈퇴일)로부터 90일이 지난 경우 확인
+    let eligibleForRegistration = false;
+    let user = null;
+
+    if (users.length !== 0) {
+      const now = dayjs();
+      eligibleForRegistration = (() => {
+        const deletedUsers = users.filter(
+          (user) => user.isDeleted === true && user.updatedAt
+        );
+
+        // 가장 최근 updatedAt을 찾음
+        const mostRecentDate = deletedUsers
+          .map((user) => dayjs(user.updatedAt))
+          .sort((a, b) => b - a)[0]; // 최신 날짜가 맨 앞에 위치
+
+        // 90일 이상 지났는지 확인
+        return mostRecentDate && now.diff(mostRecentDate, "day") >= 90;
+      })();
+
+      if (!eligibleForRegistration) {
+        throw new Error(
+          "회원 탈퇴 후 90일 이내에는 동일 이메일로 회원가입이 불가능합니다."
+        );
+      }
+    }
+    if (users.length === 0 || !users || eligibleForRegistration) {
       // 유저 생성 위한 패스워드 랜덤 생성
       const randomPassword = "" + Math.floor(Math.random() * 100000000);
       const salt = await bcrpyt.genSalt(10);
