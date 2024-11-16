@@ -4,7 +4,7 @@ require("dotenv").config();
 const chabotController = {};
 
 // OpenAI API 설정
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 const CAT_PERSONALITY = {
@@ -29,33 +29,41 @@ const CAT_PERSONALITY = {
 
 
 chabotController.createChatbot = async (req, res) => {
-    try {
-      const { userId, name, appearance, personality } = req.body;
-  
-      // 새 챗봇 객체 생성
-      const newChatbot = new Chatbot({
-        userId,
-        name,
-        appearance,
-        personality,
-      });
-  
-      // 데이터베이스에 챗봇 저장
-      const savedChatbot = await newChatbot.save();
-  
-      // console.log("Chatbot saved:", savedChatbot);
-      res.status(201).json(savedChatbot); // 저장된 챗봇 정보 반환
-    } catch (error) {
-      console.error("Error saving chatbot:", error);
-      res.status(500).json({ error: "Failed to save chatbot", rawError: error });
-    }
-  };
+  try {
+    // const userId = req.user._id; -> 미들웨어로 사용자 정보를 가져올때 여기있을 가능성이 높아보입니당.
+    const {
+      userId,
+      name,
+      appearance,
+      personality,
+      // productId
+    } = req.body;
+
+    // 새 챗봇 객체 생성
+    const newChatbot = new Chatbot({
+      userId,
+      name,
+      appearance,
+      personality,
+      // productId
+    });
+
+    // 데이터베이스에 챗봇 저장
+    const savedChatbot = await newChatbot.save();
+
+    console.log("Chatbot saved:", savedChatbot);
+    res.status(201).json(savedChatbot); // 저장된 챗봇 정보 반환
+  } catch (error) {
+    console.error("Error saving chatbot:", error);
+    res.status(500).json({ error: "Failed to save chatbot", rawError: error });
+  }
+};
 
 // chabotController.createChatbotMessage = async(req, res) =>{
 //     try {
 //         // 프론트엔드에서 들고온 메시지 받아서
 //         const { message, catType } = req.body;
-    
+
 //         // ChatGPT에 전달
 //         const completion = await openai.chat.completions.create({
 //           model: "gpt-4o-mini",
@@ -64,7 +72,7 @@ chabotController.createChatbot = async (req, res) => {
 //             { role: "user", content: message },
 //           ],
 //         });
-    
+
 //         const reply = completion.choices[0].message.content;
 //         console.log(reply);
 //         res.status(200).json({ reply });
