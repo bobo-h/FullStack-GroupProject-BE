@@ -29,7 +29,7 @@ chabotController.createChatbot = async (req, res) => {
       // 데이터베이스에 챗봇 저장
       const savedChatbot = await newChatbot.save();
   
-      console.log("Chatbot saved:", savedChatbot);
+      // console.log("Chatbot saved:", savedChatbot);
       res.status(201).json(savedChatbot); // 저장된 챗봇 정보 반환
     } catch (error) {
       console.error("Error saving chatbot:", error);
