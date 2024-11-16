@@ -10,34 +10,38 @@ userController.createUser = async (req, res) => {
     let { email, password, name, birthday, level, profileImage } = req.body;
     // 이메일 중복검사
     const users = await User.find({ email });
+    //초기값 설정
+    let eligibleForRegistration = false;
 
-    // isDeleted가 false인 사용자가 있는지 확인
-    const existingActiveUser = users.find((user) => user.isDeleted === false);
-    if (existingActiveUser) {
-      throw new Error("이미 존재하는 유저입니다.");
-    }
+    if (users.length > 0) {
+      // isDeleted가 false인 사용자가 있는지 확인
+      const existingActiveUser = users.find((user) => user.isDeleted === false);
+      if (existingActiveUser) {
+        throw new Error("이미 존재하는 유저입니다.");
+      }
 
-    // isDeleted가 true인 사용자(회원탈퇴) 중
-    // 업데이트일(회원탈퇴일)로부터 90일이 지난 경우 확인
-    const now = dayjs();
-    const eligibleForRegistration = (() => {
-      const deletedUsers = users.filter(
-        (user) => user.isDeleted === true && user.updatedAt
-      );
+      // isDeleted가 true인 사용자(회원탈퇴) 중
+      // 업데이트일(회원탈퇴일)로부터 90일이 지난 경우 확인
+      const now = dayjs();
+      eligibleForRegistration = (() => {
+        const deletedUsers = users.filter(
+          (user) => user.isDeleted === true && user.updatedAt
+        );
 
-      // 가장 최근 updatedAt을 찾음
-      const mostRecentDate = deletedUsers
-        .map((user) => dayjs(user.updatedAt))
-        .sort((a, b) => b - a)[0]; // 최신 날짜가 맨 앞에 위치
+        // 가장 최근 updatedAt을 찾음
+        const mostRecentDate = deletedUsers
+          .map((user) => dayjs(user.updatedAt))
+          .sort((a, b) => b - a)[0]; // 최신 날짜가 맨 앞에 위치
 
-      // 90일 이상 지났는지 확인
-      return mostRecentDate && now.diff(mostRecentDate, "day") >= 90;
-    })();
+        // 90일 이상 지났는지 확인
+        return mostRecentDate && now.diff(mostRecentDate, "day") >= 90;
+      })();
 
-    if (!eligibleForRegistration) {
-      throw new Error(
-        "회원 탈퇴 후 90일 이내에는 동일 이메일로 회원가입이 불가능합니다."
-      );
+      if (!eligibleForRegistration) {
+        throw new Error(
+          "회원 탈퇴 후 90일 이내에는 동일 이메일로 회원가입이 불가능합니다."
+        );
+      }
     }
 
     if (eligibleForRegistration || users.length === 0 || !users) {
