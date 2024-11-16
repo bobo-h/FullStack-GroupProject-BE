@@ -5,3 +5,5 @@
 // const router = express.Router();
 
 // router.post("/", authController.authenticate, diaryController.createDiary);
+
+module.exports = router;
