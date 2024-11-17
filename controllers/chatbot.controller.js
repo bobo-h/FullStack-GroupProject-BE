@@ -103,24 +103,60 @@ chatbotController.getChatbots = async (req, res) => {
 chatbotController.updateChatbotPosition = async (req, res) => {
   try {
     const { chatbotId } = req.params;
-    const { position } = req.body;
+    const { position, zIndex, flip, visualization } = req.body;
+    const userId = req.userId;
 
-    const updatedChatbot = await Chatbot.findByIdAndUpdate(
-      chatbotId,
-      { position },
-      { new: true }
-    );
+    console.log("User ID from request:", userId);
+    console.log("Chatbot ID from params:", chatbotId);
 
-    if (!updatedChatbot) {
+    // 챗봇을 찾기 전에 userId와 일치하는지 확인
+    const chatbot = await Chatbot.findById(chatbotId);
+
+    if (!chatbot) {
+      console.log("Chatbot not found");
       return res.status(404).json({ error: "Chatbot not found" });
     }
 
-    res.status(200).json(updatedChatbot);
+    console.log("Found chatbot:", chatbot);
+
+    // 챗봇이 사용자에게 속하는지 확인
+    if (chatbot.user_id.toString() !== userId) {
+      console.log("Unauthorized access");
+      return res.status(403).json({ error: "Unauthorized to update this chatbot" });
+    }
+
+    // prepare update data
+    const updateData = {};
+    if (position) updateData.position = position;
+    if (zIndex !== undefined) updateData.zIndex = zIndex;
+    if (flip !== undefined) updateData.flip = flip;
+    if (visualization !== undefined) updateData.visualization = visualization;
+
+    console.log("Update data:", updateData);
+
+    // 챗봇을 찾아서 업데이트
+    const updatedChatbot = await Chatbot.findByIdAndUpdate(
+      chatbotId,
+      updateData,
+      { new: true }
+    );
+
+    console.log("Updated Chatbot:", updatedChatbot);
+
+    if (!updatedChatbot) {
+      console.log("Update failed");
+      return res.status(404).json({ error: "Chatbot not found" });
+    }
+
+    res.status(200).json(updatedChatbot); // Updated chatbot response
   } catch (error) {
     console.error("Error updating chatbot position:", error);
     res.status(500).json({ error: "Failed to update chatbot position", rawError: error });
   }
 };
+
+
+
 
 //챗봇 수정 - name 수정
 chatbotController.updateName = async (req, res) => {
