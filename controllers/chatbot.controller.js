@@ -5,6 +5,22 @@ require("dotenv").config();
 
 const chatbotController = {};
 
+// ObjectId 유효성 검사 함수
+const validateIds = (userId, chatbotId) => {
+  const userIdValidation = validateObjectId(userId, 'user_id');
+  const chatbotIdValidation = validateObjectId(chatbotId, 'chatbotId');
+
+  if (!userIdValidation.isValid) {
+    return { isValid: false, message: userIdValidation.message };
+  }
+
+  if (!chatbotIdValidation.isValid) {
+    return { isValid: false, message: chatbotIdValidation.message };
+  }
+
+  return { isValid: true };
+};
+
 //챗봇 생성
 chatbotController.createChatbot = async (req, res) => {
   try {
@@ -43,30 +59,56 @@ chatbotController.createChatbot = async (req, res) => {
 };
 
 
-//챗봇 가져오기
+//유저의 챗봇 리스트 가져오기
 chatbotController.getChatbots = async (req, res) => {
   try {
-    // 요청에서 userId 추출
-    const { userId } = req;
 
-    // userId가 올바른 ObjectId 형식인지 확인
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid user_id format" });
+    const { userId } = req.params;
+
+    const validation = validateObjectId(userId, 'user_id');
+    if (!validation.isValid) {
+      return res.status(400).json({ message: validation.message });
     }
 
-    // userId를 ObjectId로 변환
     const objectIdUserId = new mongoose.Types.ObjectId(userId);
-
-    // 변환된 ObjectId로 Chatbot을 찾기
     const chatbots = await Chatbot.find({ user_id: objectIdUserId });
 
-    // 결과가 없으면 에러 메시지 반환
     if (!chatbots || chatbots.length === 0) {
       return res.status(404).json({ message: "No chatbots found" });
     }
 
-    // 결과 반환
     res.status(200).json(chatbots);
+
+  } catch (error) {
+    console.error("Error fetching chatbots:", error);
+    res.status(500).json({ error: "Failed to fetch chatbots", rawError: error });
+  }
+};
+
+//챗봇 가져오기
+chatbotController.getChatbotDetail = async (req, res) => {
+  try {
+
+    const { userId, chatbotId } = req.params;
+
+    const validation = validateIds(userId, chatbotId);
+    if (!validation.isValid) {
+      return res.status(400).json({ message: validation.message });
+    }
+
+    const objectIdUserId = new mongoose.Types.ObjectId(userId);
+    const objectIdChatbotId = new mongoose.Types.ObjectId(chatbotId);
+
+    const chatbotDetail = await Chatbot.findOne({ 
+      _id: objectIdChatbotId, 
+      user_id: objectIdUserId 
+    });
+
+    if (!chatbotDetail) {
+      return res.status(404).json({ message: "No chatbot found" });
+    }
+
+    res.status(200).json(chatbotDetail);
 
   } catch (error) {
     console.error("Error fetching chatbots:", error);

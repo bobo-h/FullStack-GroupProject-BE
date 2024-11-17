@@ -19,9 +19,16 @@ router.post(
     openaiController.chatbotMessagePersonality,
     openaiController.createChatbotMessage)
 
-// GET /api/chatbot - 사용자의 모든 챗봇을 가져옴 / 메인에서 필요한 이미지와 좌표를 가져옴.
+// GET /api/chatbot/:userId - 사용자의 모든 챗봇을 가져옴
 router.get(
-    "/", 
+    "/:userId", 
+    authController.authenticate, 
+    chatbotController.getChatbots
+);
+
+// GET /api/chatbot/:userId/:chatbotId - 사용자의 특정 챗봇을 가져옴
+router.get(
+    "/:userId/:chatbotId", 
     authController.authenticate, 
     chatbotController.getChatbots
 );
