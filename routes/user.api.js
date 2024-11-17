@@ -8,7 +8,7 @@ router.post("/", userController.createUser);
 // 토큰이 유효한지 확인 뒤, 토큰을 가지고 유저를 찾아서 리턴
 router.get("/me", authController.authenticate, userController.getUser);
 // 회원정보 수정
-router.put("/:id", userController.editUser);
+router.put("/:id", authController.authenticate, userController.editUser);
 // 회원탈퇴
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", authController.authenticate, userController.deleteUser);
 module.exports = router;

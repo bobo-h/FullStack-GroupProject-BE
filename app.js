@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 app.use("/api", indexRouter);
 
 //  const mongoURI = process.env.LOCAL_DB_ADDRESS;
- const mongoURI = process.env.MONGODB_URI_PROD;
+const mongoURI = process.env.MONGODB_URI_PROD;
 
 mongoose
   .connect(mongoURI)

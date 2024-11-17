@@ -81,13 +81,15 @@ userController.getUser = async (req, res) => {
 // 회원정보 수정
 userController.editUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    //const { id } = req.params;
+    // 토큰에서 가져온 UserId
+    const { userId } = req;
     const { name, birthday, profileImage } = req.body;
 
     if (!name) throw new Error("이름은 필수항목 값입니다.");
 
     const user = await User.findByIdAndUpdate(
-      { _id: id },
+      { _id: userId },
       { name, birthday, profileImage },
       { new: true }
     );
@@ -101,9 +103,11 @@ userController.editUser = async (req, res) => {
 //회원탈퇴
 userController.deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    //const { id } = req.params;
+    // 토큰에서 가져온 UserId
+    const { userId } = req;
     const user = await User.findByIdAndUpdate(
-      { _id: id },
+      { _id: userId },
       { isDeleted: true },
       { new: true }
     );
