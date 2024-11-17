@@ -93,7 +93,7 @@ authController.loginWithGoogle = async (req, res) => {
 // 토큰의 유효성 확인
 authController.authenticate = async (req, res, next) => {
   try {
-    const tokenString = req.header.authorization;
+    const tokenString = req.headers.authorization;
     if (!tokenString) throw new Error("토큰을 찾을 수 없습니다.");
     const token = tokenString.replace("Bearer ", "");
     jwt.verify(token, JWT_SECRET_KEY, (error, payload) => {
