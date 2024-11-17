@@ -1,11 +1,11 @@
 const Product = require("../models/Product")
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 20
 const productController = {}
 
 productController.createProduct = async (req, res) => {
     try {
-        const { id, name, image, description, category, is_active, price, } = req.body
+        const { id, name, image, description, category, is_active, price, default_product } = req.body
         const product = new Product({
             id,
             name,
@@ -14,6 +14,7 @@ productController.createProduct = async (req, res) => {
             category,
             is_active,
             price,
+            default_product
         });
 
         await product.save()
@@ -27,8 +28,8 @@ productController.getProducts = async (req, res) => {
     try {
         const { page, name } = req.query
         const cond = name ? {
-            name: { $regex: name, $options: 'i' }, is_active: "active"
-        } : { is_active: "active" }
+            name: { $regex: name, $options: 'i' }, is_active: "Active"
+        } : { is_active: "Active" }
 
         let query = Product.find(cond)
         let response = { status: "success", };
@@ -52,12 +53,12 @@ productController.getProducts = async (req, res) => {
 productController.updateProduct = async (req, res) => {
     try {
         const productId = req.params.id;
-        const { id, name, image, description, category, is_active, price, }  = req.body
+        const { id, name, image, description, category, is_active, price, default_product }  = req.body
 
         // TODO HERE 여기 다시 보기 
         const product = await Product.findByIdAndUpdate(
             { _id: productId },
-            { id, name, image, description, category, is_active, price,  },
+            { id, name, image, description, category, is_active, price, default_product },
             { new: true }
         );
         if (!product) throw new Error("Item doesn't exist!!")
@@ -73,7 +74,7 @@ productController.deleteProduct = async (req, res) => {
 
         const product = await Product.findByIdAndUpdate(
             { _id: productId },
-            { is_active: "inactive" }
+            { is_active: "Inactive" }
         );
 
         if (!product) throw new Error("No item found")

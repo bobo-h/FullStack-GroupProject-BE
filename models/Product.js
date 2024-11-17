@@ -7,6 +7,7 @@ const productSchema = Schema({
     category: { type: Array, required: true },    
     description: { type: String, required: true },
     price: { type: Number, required: true },
+    default_product: { type: String, default: "no", require: true},
     is_active: { type: String, default: "active" },
 }, { timestamps: true })
 
