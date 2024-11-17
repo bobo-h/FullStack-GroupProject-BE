@@ -238,8 +238,8 @@ chatbotController.createPrintLine = async(req, res) => {
     }
 
     const personalityContent = CAT_PERSONALITY[catPersonality].description;
-    const userMessage = `${message} (Respond in 20 characters or less.)`;
-    const systemMessage = `You are a chatbot with a ${catPersonality} personality. Reply briefly, in 20 characters or less.`;
+    const userMessage = `${message} (Respond in 10 characters or less.)`;
+    const systemMessage = `You are a chatbot with a ${catPersonality} personality. Reply briefly, in 10 characters or less.`;
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
