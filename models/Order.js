@@ -8,6 +8,7 @@ const orderSchema = Schema(
 
     userId: {type: String, required: true},  // 향후 수정 필요
     name: {type: String, required: true},
+    email: { type: String, required: true },
     phone: { type: String, required: true },
     price: { type: Number, required: true, default: 0 },
     productId: {type: mongoose.ObjectId, ref: Product, required: true},

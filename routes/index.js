@@ -6,6 +6,7 @@ const authApi = require("./auth.api");
 const chatbotApi = require("./chatbot.api");
 const productApi = require("./product.api")
 const orderApi = require("./order.api")
+const moodApi = require("./mood.api")
 
 router.use("/user", userApi);
 router.use("/auth", authApi);
@@ -13,5 +14,6 @@ router.use("/auth", authApi);
 router.use("/chatbot",chatbotApi);
 router.use("/product", productApi)
 router.use("/order", orderApi)
+router.use("/mood", moodApi)
 
 module.exports = router;
