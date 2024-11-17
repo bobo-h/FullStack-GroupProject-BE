@@ -103,9 +103,11 @@ userController.editUser = async (req, res) => {
 //회원탈퇴
 userController.deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    //const { id } = req.params;
+    // 토큰에서 가져온 UserId
+    const { userId } = req;
     const user = await User.findByIdAndUpdate(
-      { _id: id },
+      { _id: userId },
       { isDeleted: true },
       { new: true }
     );

@@ -10,5 +10,5 @@ router.get("/me", authController.authenticate, userController.getUser);
 // 회원정보 수정
 router.put("/:id", authController.authenticate, userController.editUser);
 // 회원탈퇴
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", authController.authenticate, userController.deleteUser);
 module.exports = router;
