@@ -1,11 +1,11 @@
 const express = require("express");
 const diaryController = require("../controllers/diary.controller");
-// const authController = require("../controllers/auth.controller");
+const authController = require("../controllers/auth.controller");
 
-// const router = express.Router();
+const router = express.Router();
 
-// authController.authenticate, 추후 추가 예정
-router.post("/", diaryController.createDiary);
-router.get("/", diaryController.getDiaryList);
+router.post("/", authController.authenticate, diaryController.createDiary);
+router.get("/", authController.authenticate, diaryController.getDiaryList);
+router.get("/:id", authController.authenticate, diaryController.getDiaryDetail);
 
 module.exports = router;
