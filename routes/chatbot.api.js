@@ -1,13 +1,49 @@
 const express = require("express");
 const router = express.Router();
-const chabotController = require("../controllers/chatbot.controller");
+const chatbotController = require("../controllers/chatbot.controller");
+const openaiController = require("../controllers/openai.controller");
+const authController = require("../controllers/auth.controller");
 
-router.post("/", chabotController.createChatbot);
-router.post("/printLine", chabotController.createPrintLine)
+// POST /api/chatbot/
+router.post("/", chatbotController.createChatbot);
 
-// GET /api/chatbots - 사용자의 모든 챗봇을 가져옴 / 메인에서 필요한 이미지와 좌표를 가져옴.
-// router.get("/", chatbotController.getChatbots); // post와 get 도두 사용자 인증 미들웨어 필요함.
+// POST /api/chatbot/printLine
+router.post(
+    "/printLine", 
+    openaiController.chatbotMessagePersonality,
+    openaiController.createPrintLine)
 
-// PUT /api/chatbots/:chatbotId/position
-// router.put("/:chatbotId/position",chatbotController.updateChatbotPosition)
+// POST /api/chatbot/comment
+router.post(
+    "/comment", 
+    openaiController.chatbotMessagePersonality,
+    openaiController.createChatbotMessage)
+
+// GET /api/chatbot/:userId - 사용자의 모든 챗봇을 가져옴
+router.get(
+    "/:userId", 
+    authController.authenticate, 
+    chatbotController.getChatbots
+);
+
+// GET /api/chatbot/:userId/:chatbotId - 사용자의 특정 챗봇을 가져옴
+router.get(
+    "/:userId/:chatbotId", 
+    authController.authenticate, 
+    chatbotController.getChatbots
+);
+
+// PUT /api/chatbot/:chatbotId/position
+router.put(
+    "/:chatbotId/position",
+    authController.authenticate,
+    chatbotController.updateChatbotPosition
+)
+
+// PUT /api/chatbot/:chatbotId/name
+router.put("/:chatbotId/name", chatbotController.updateName);
+
+// DELETE /api/chatbot/:chatbotId
+router.delete("/:chatbotId", chatbotController.deleteChatbot);
+
 module.exports = router;
