@@ -6,13 +6,13 @@ const moodController = {}
 
 moodController.createMood = async (req, res) => {
     try {
-        const { id, name, image, description, is_deleted } = req.body
+        const { id, name, image, description, isDeleted } = req.body
         const mood = new Mood({
             id,
             name,
             image,
             description,
-            is_deleted
+            isDeleted
         });
 
         await mood.save()
@@ -26,8 +26,8 @@ moodController.getMoods = async (req, res) => {
     try {
         const { page, name } = req.query
         const cond = name ? {
-            name: { $regex: name, $options: 'i' }, is_deleted: "No"
-        } : { is_deleted: "No" }
+            name: { $regex: name, $options: 'i' }, isDeleted: "No"
+        } : { isDeleted: "No" }
 
         let query = Mood.find(cond)
         let response = { status: "success", };
@@ -51,11 +51,11 @@ moodController.getMoods = async (req, res) => {
 moodController.updateMood = async (req, res) => {
     try {
         const moodId = req.params.id;
-        const { id, name, image, description, is_deleted }  = req.body
+        const { id, name, image, description, isDeleted }  = req.body
 
         const mood = await Mood.findByIdAndUpdate(
             { _id: moodId },
-            { id, name, image, description, is_deleted },
+            { id, name, image, description, isDeleted },
             { new: true }
         );
         if (!mood) throw new Error("Item doesn't exist!!")
@@ -71,7 +71,7 @@ moodController.deleteMood = async (req, res) => {
 
         const mood = await Mood.findByIdAndUpdate(
             { _id: moodId },
-            { is_deleted: "Yes" }
+            { isDeleted: "Yes" }
         );
 
         if (!mood) throw new Error("No item found")
