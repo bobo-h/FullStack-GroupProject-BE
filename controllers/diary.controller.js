@@ -83,4 +83,97 @@ diaryController.getDiaryList = async (req, res) => {
   }
 };
 
+diaryController.getDiaryDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Diary ID is required." });
+    }
+
+    const diary = await Diary.findOne({
+      _id: mongoose.Types.ObjectId(id),
+      isDeleted: false,
+    });
+
+    if (!diary) {
+      return res.status(404).json({ message: "Diary not found." });
+    }
+
+    res.status(200).json({
+      status: "success",
+      diary,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "fail", error: error.message });
+  }
+};
+
+diaryController.deleteDiary = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Diary ID is required." });
+    }
+
+    const updatedDiary = await Diary.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(id), isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
+
+    if (!updatedDiary) {
+      return res
+        .status(404)
+        .json({ message: "Diary not found or already deleted." });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Diary successfully deleted.",
+      diary: updatedDiary,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "fail", error: error.message });
+  }
+};
+
+diaryController.updateDiary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, image, selectedDate, mood } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: "Diary ID is required." });
+    }
+
+    if (!title || !content || !image || !selectedDate || !mood) {
+      return res
+        .status(400)
+        .json({ message: "All fields are required for updating." });
+    }
+
+    const updatedDiary = await Diary.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(id), isDeleted: false },
+      { title, content, image, selectedDate, mood },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedDiary) {
+      return res
+        .status(404)
+        .json({ message: "Diary not found or has been deleted." });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Diary successfully updated.",
+      diary: updatedDiary,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "fail", error: error.message });
+  }
+};
+
 module.exports = diaryController;
