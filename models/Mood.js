@@ -7,7 +7,7 @@ const moodSchema = new Schema({
   name: { type: String, required: true }, // 기분 이름
   image: { type: String, required: true },   
   description: { type: String, required: true },
-  is_deleted: { type: String, default: "No" },
+  isDeleted: { type: String, default: "No" },
 });
 
 module.exports = mongoose.model("Mood", moodSchema);
