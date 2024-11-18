@@ -5,16 +5,16 @@ const productController = {}
 
 productController.createProduct = async (req, res) => {
     try {
-        const { id, name, image, description, category, is_active, price, default_product } = req.body
+        const { id, name, image, description, category, isActive, price, defaultProduct } = req.body
         const product = new Product({
             id,
             name,
             image,
             description,
             category,
-            is_active,
+            isActive,
             price,
-            default_product
+            defaultProduct
         });
 
         await product.save()
@@ -28,10 +28,10 @@ productController.getProducts = async (req, res) => {
     try {
         const { page, name } = req.query
         const cond = name ? {
-            name: { $regex: name, $options: 'i' }, is_active: "Active"
-        } : { is_active: "Active" }
+            name: { $regex: name, $options: 'i' }, isActive: "Active"
+        } : { isActive: "Active" }
 
-        let query = Product.find(cond)
+        let query = Product.find(cond).sort({id: 1});
         let response = { status: "success", };
         if (page) {
             query.skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE);
@@ -53,12 +53,12 @@ productController.getProducts = async (req, res) => {
 productController.updateProduct = async (req, res) => {
     try {
         const productId = req.params.id;
-        const { id, name, image, description, category, is_active, price, default_product }  = req.body
+        const { id, name, image, description, category, isActive, price, defaultProduct }  = req.body
 
         // TODO HERE 여기 다시 보기 
         const product = await Product.findByIdAndUpdate(
             { _id: productId },
-            { id, name, image, description, category, is_active, price, default_product },
+            { id, name, image, description, category, isActive, price, defaultProduct },
             { new: true }
         );
         if (!product) throw new Error("Item doesn't exist!!")
@@ -74,7 +74,7 @@ productController.deleteProduct = async (req, res) => {
 
         const product = await Product.findByIdAndUpdate(
             { _id: productId },
-            { is_active: "Inactive" }
+            { isActive: "Inactive" }
         );
 
         if (!product) throw new Error("No item found")
