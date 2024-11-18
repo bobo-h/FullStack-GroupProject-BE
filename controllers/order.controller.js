@@ -3,14 +3,13 @@ const Order = require("../models/Order");
 const { randomStringGenerator } = require("../utils/randomStringGenerator")
 const productController = require("./product.controller");
 
-PAGE_SIZE = 5; 
+PAGE_SIZE = 10;
 
 orderController.createOrder = async (req, res) => {
     try {
+
         // 프론트엔드에서 데이터 보낸거 다 받아와 
-        
-        // const { userId } = req;
-        const userId = "userId_virtual" 
+        const { userId } = req;
         const { name, email, phone, price, productId, productName, productCategory } = req.body
 
         // order를 만들자
@@ -27,7 +26,7 @@ orderController.createOrder = async (req, res) => {
         });
 
         await newOrder.save()
-        res.status(200).json({ status: "success", orderNum: newOrder.orderNum })
+        res.status(200).json({ status: "success", orderNum: newOrder.orderNum, orderUserId: newOrder.userId})
 
     } catch (error) {
         return res.status(400).json({ status: "fail", message: error.message })
