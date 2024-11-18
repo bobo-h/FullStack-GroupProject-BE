@@ -29,16 +29,17 @@ const CAT_PERSONALITY = {
 
   // 챗봇성격 및 시스템 메시지를 생성하는 함수
   openaiController.chatbotMessagePersonality = (catPersonality, maxLength) => {
-    if (!CAT_PERSONALITY[catPersonality]) {
-      throw new Error("Invalid cat personality type");
+    // catPersonality가 CAT_PERSONALITY 객체에 정의된 키가 아니면 그대로 문자열을 사용
+    const personalityContent = CAT_PERSONALITY[catPersonality] || catPersonality;
+    
+    if (!personalityContent) {
+        throw new Error("Invalid cat personality type");
     }
-  
-    const personalityContent = CAT_PERSONALITY[catPersonality].description;
+
     const systemMessage = `You are a chatbot with a ${catPersonality} personality. Reply briefly, in ${maxLength} characters or less.`;
-  
+
     return { systemMessage, personalityContent };
-  };
-  
+};
   
   // 챗봇 - 댓글/대댓글
   openaiController.createChatbotMessage = async (req, res) => {
