@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Diary = require("../models/Diary");
 
 const diaryController = {};
@@ -30,14 +31,18 @@ diaryController.createDiary = async (req, res) => {
 
 diaryController.getDiaryList = async (req, res) => {
   try {
-    const { userId } = req.userId;
+    const userId = req.userId;
+    const { page = 1, limit = 10 } = req.query;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
 
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+
     const diaries = await Diary.aggregate([
-      { $match: { userId: mongoose.Types.ObjectId(userId) } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       {
         $group: {
           _id: {
@@ -73,14 +78,30 @@ diaryController.getDiaryList = async (req, res) => {
           diaries: 1,
         },
       },
+      { $skip: (pageNumber - 1) * pageSize },
+      { $limit: pageSize },
+    ]);
+    const totalGroups = await Diary.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$selectedDate" },
+            month: { $month: "$selectedDate" },
+          },
+        },
+      },
     ]);
 
+    const totalPages = Math.ceil(totalGroups.length / pageSize);
+
     res.status(200).json({
-      status: "success",
       data: diaries,
+      currentPage: pageNumber,
+      totalPages,
     });
   } catch (error) {
-    res.status(500).json({ status: "fail", error: error.message });
+    res.status(400).json({ status: "fail", error: error.message });
   }
 };
 
