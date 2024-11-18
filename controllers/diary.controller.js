@@ -44,6 +44,17 @@ diaryController.getDiaryList = async (req, res) => {
     const diaries = await Diary.aggregate([
       { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       {
+        $lookup: {
+          from: "moods", // Mood 컬렉션 이름
+          localField: "mood",
+          foreignField: "_id",
+          as: "moodDetails",
+        },
+      },
+      {
+        $unwind: "$moodDetails", // moodDetails를 단일 객체로 변환
+      },
+      {
         $group: {
           _id: {
             year: { $year: "$selectedDate" },
@@ -56,7 +67,11 @@ diaryController.getDiaryList = async (req, res) => {
               content: "$content",
               image: "$image",
               selectedDate: "$selectedDate",
-              mood: "$mood",
+              mood: {
+                id: "$moodDetails._id",
+                name: "$moodDetails.name",
+                image: "$moodDetails.image",
+              },
               isEdited: "$isEdited",
               createdAt: "$createdAt",
               updatedAt: "$updatedAt",
