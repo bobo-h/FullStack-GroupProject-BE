@@ -1,5 +1,5 @@
 const Chatbot = require("../models/Chatbot");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const OpenAI = require("openai");
 require("dotenv").config();
 
@@ -7,8 +7,8 @@ const chatbotController = {};
 
 // ObjectId 유효성 검사 함수
 const validateIds = (userId, chatbotId) => {
-  const userIdValidation = validateObjectId(userId, 'user_id');
-  const chatbotIdValidation = validateObjectId(chatbotId, 'chatbotId');
+  const userIdValidation = validateObjectId(userId, "user_id");
+  const chatbotIdValidation = validateObjectId(chatbotId, "chatbotId");
 
   if (!userIdValidation.isValid) {
     return { isValid: false, message: userIdValidation.message };
@@ -26,16 +26,16 @@ chatbotController.createChatbot = async (req, res) => {
   try {
     // const userId = req.user._id; -> 미들웨어로 사용자 정보를 가져올때 여기있을 가능성이 높아보입니당.
     const {
-      user_id = req.body.user_id, 
-      product_id= req.body.product_id, 
-      name, 
-      personality, 
-      position, 
-      zIndex, 
-      flip, 
-      visualization 
+      user_id = req.body.user_id,
+      product_id = req.body.product_id,
+      name,
+      personality,
+      position,
+      zIndex,
+      flip,
+      visualization,
     } = req.body;
-    
+
     const newChatbot = new Chatbot({
       user_id,
       product_id,
@@ -46,7 +46,7 @@ chatbotController.createChatbot = async (req, res) => {
       flip,
       visualization,
     });
-    
+
     // 데이터베이스에 챗봇 저장
     const savedChatbot = await newChatbot.save();
 
@@ -58,14 +58,14 @@ chatbotController.createChatbot = async (req, res) => {
   }
 };
 
-
 //유저의 챗봇 리스트 가져오기
 chatbotController.getChatbots = async (req, res) => {
   try {
-
+    // 토큰에서 가져온 유저아이디를 기본적으로 사용하기 때문에 아래와 같이 코드 변경 가능성 있음
+    //const{userId} = req;
     const { userId } = req.params;
 
-    const validation = validateObjectId(userId, 'user_id');
+    const validation = validateObjectId(userId, "user_id");
     if (!validation.isValid) {
       return res.status(400).json({ message: validation.message });
     }
@@ -78,17 +78,17 @@ chatbotController.getChatbots = async (req, res) => {
     }
 
     res.status(200).json(chatbots);
-
   } catch (error) {
     console.error("Error fetching chatbots:", error);
-    res.status(500).json({ error: "Failed to fetch chatbots", rawError: error });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch chatbots", rawError: error });
   }
 };
 
 //챗봇 가져오기
 chatbotController.getChatbotDetail = async (req, res) => {
   try {
-
     const { userId, chatbotId } = req.params;
 
     const validation = validateIds(userId, chatbotId);
@@ -99,9 +99,9 @@ chatbotController.getChatbotDetail = async (req, res) => {
     const objectIdUserId = new mongoose.Types.ObjectId(userId);
     const objectIdChatbotId = new mongoose.Types.ObjectId(chatbotId);
 
-    const chatbotDetail = await Chatbot.findOne({ 
-      _id: objectIdChatbotId, 
-      user_id: objectIdUserId 
+    const chatbotDetail = await Chatbot.findOne({
+      _id: objectIdChatbotId,
+      user_id: objectIdUserId,
     });
 
     if (!chatbotDetail) {
@@ -109,13 +109,13 @@ chatbotController.getChatbotDetail = async (req, res) => {
     }
 
     res.status(200).json(chatbotDetail);
-
   } catch (error) {
     console.error("Error fetching chatbots:", error);
-    res.status(500).json({ error: "Failed to fetch chatbots", rawError: error });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch chatbots", rawError: error });
   }
 };
-
 
 //챗봇 수정 - 위치수정
 chatbotController.updateChatbotPosition = async (req, res) => {
@@ -140,7 +140,9 @@ chatbotController.updateChatbotPosition = async (req, res) => {
     // 챗봇이 사용자에게 속하는지 확인
     if (chatbot.user_id.toString() !== userId) {
       console.log("Unauthorized access");
-      return res.status(403).json({ error: "Unauthorized to update this chatbot" });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized to update this chatbot" });
     }
 
     // prepare update data
@@ -169,12 +171,11 @@ chatbotController.updateChatbotPosition = async (req, res) => {
     res.status(200).json(updatedChatbot); // Updated chatbot response
   } catch (error) {
     console.error("Error updating chatbot position:", error);
-    res.status(500).json({ error: "Failed to update chatbot position", rawError: error });
+    res
+      .status(500)
+      .json({ error: "Failed to update chatbot position", rawError: error });
   }
 };
-
-
-
 
 //챗봇 수정 - name 수정
 chatbotController.updateName = async (req, res) => {
@@ -197,11 +198,11 @@ chatbotController.updateName = async (req, res) => {
     res.status(200).json(updatedChatbot); // 수정된 챗봇 정보 반환
   } catch (error) {
     console.error("Error updating chatbot name:", error);
-    res.status(500).json({ error: "Failed to update chatbot name", rawError: error });
+    res
+      .status(500)
+      .json({ error: "Failed to update chatbot name", rawError: error });
   }
 };
-
-
 
 //챗봇 삭제
 chatbotController.deleteChatbot = async (req, res) => {
@@ -217,7 +218,9 @@ chatbotController.deleteChatbot = async (req, res) => {
     res.status(200).json({ message: "Chatbot deleted successfully" });
   } catch (error) {
     console.error("Error deleting chatbot:", error);
-    res.status(500).json({ error: "Failed to delete chatbot", rawError: error });
+    res
+      .status(500)
+      .json({ error: "Failed to delete chatbot", rawError: error });
   }
 };
 
