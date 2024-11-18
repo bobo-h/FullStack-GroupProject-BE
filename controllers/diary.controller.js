@@ -4,8 +4,9 @@ const diaryController = {};
 
 diaryController.createDiary = async (req, res) => {
   try {
-    const { userId, title, content, image, selectedDate, mood } = req.body;
-    if (!userId || !title || !content || !image || !selectedDate || !mood) {
+    const userId = req.userId;
+    const { title, content, image, selectedDate, mood } = req.body;
+    if (!title || !content || !image || !selectedDate || !mood) {
       return res.status(400).json({ message: "All fields are required." });
     }
     const newDiary = new Diary({
@@ -29,7 +30,7 @@ diaryController.createDiary = async (req, res) => {
 
 diaryController.getDiaryList = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId } = req.userId;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });

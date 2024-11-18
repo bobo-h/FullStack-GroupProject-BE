@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const moodSchema = new Schema({
-  id: { type: String, required: true, unique: true }, 
+  id: { type: String, required: true, unique: true },
   name: { type: String, required: true }, // 기분 이름
-  image: { type: String, required: true },   
+  image: { type: String, required: true },
   description: { type: String, required: true },
-  is_deleted: { type: String, default: "No" },
+  isDeleted: { type: String, default: "No" },
 });
 
 module.exports = mongoose.model("Mood", moodSchema);
