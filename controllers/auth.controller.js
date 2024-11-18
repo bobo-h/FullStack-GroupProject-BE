@@ -40,46 +40,68 @@ authController.loginWithGoogle = async (req, res) => {
     let users = await User.find({ email });
 
     // isDeleted가 true인 구글 사용자(회원탈퇴) 중
-    // 업데이트일(회원탈퇴일)로부터 90일이 지난 경우 확인
-    let eligibleForRegistration = false;
+    // 업데이트일(회원탈퇴일)로부터 90일이 지나지 않은 경우를 확인
+    let ineligibleForRegistration = false;
     let user = null;
+    let sessionToken = null;
 
     if (users.length !== 0) {
       const now = dayjs();
-      eligibleForRegistration = (() => {
-        const deletedUsers = users.filter(
-          (user) => user.isDeleted === true && user.updatedAt
-        );
+      const deletedUsers = users.filter(
+        (user) => user.isDeleted === true && user.updatedAt
+      );
 
-        // 가장 최근 updatedAt을 찾음
+      if (deletedUsers.length > 0) {
         const mostRecentDate = deletedUsers
           .map((user) => dayjs(user.updatedAt))
           .sort((a, b) => b - a)[0]; // 최신 날짜가 맨 앞에 위치
 
-        // 90일 이상 지났는지 확인
-        return mostRecentDate && now.diff(mostRecentDate, "day") >= 90;
-      })();
+        // 90일 미만이면 ineligibleForRegistration = true
+        ineligibleForRegistration =
+          mostRecentDate && now.diff(mostRecentDate, "day") < 90;
+      }
 
-      if (!eligibleForRegistration) {
+      if (ineligibleForRegistration) {
         throw new Error(
           "회원 탈퇴 후 90일 이내에는 동일 이메일로 회원가입이 불가능합니다."
         );
       }
-    }
-    if (users.length === 0 || !users || eligibleForRegistration) {
-      // 유저 생성 위한 패스워드 랜덤 생성
-      const randomPassword = "" + Math.floor(Math.random() * 100000000);
-      const salt = await bcrpyt.genSalt(10);
-      const newPassword = await bcrpyt.hash(randomPassword, salt);
-      user = new User({
-        email: email,
-        name: name,
-        password: newPassword,
-      });
-      await user.save();
+
+      // DB에 isDeleted가 false인 유저가 있는 경우
+      user = users.find((user) => user.isDeleted === false);
+      if (user) {
+        sessionToken = await user.generateToken();
+        return res
+          .status(200)
+          .json({ status: "success", user, token: sessionToken });
+      }
+
+      // DB에 isDeleted가 true인 유저가 있는 경우 (90일 이상 지난 상태)
+      user = users.find((user) => user.isDeleted === true);
+      if (user) {
+        user.isDeleted = false;
+        await user.save();
+        sessionToken = await user.generateToken();
+        return res
+          .status(200)
+          .json({ status: "success", user, token: sessionToken });
+      }
     }
 
-    const sessionToken = await user.generateToken();
+    // DB에 유저가 없는 경우 새로운 유저 생성
+
+    const randomPassword = "" + Math.floor(Math.random() * 100000000);
+    const salt = await bcrpyt.genSalt(10);
+    const newPassword = await bcrpyt.hash(randomPassword, salt);
+
+    user = new User({
+      email: email,
+      name: name,
+      password: newPassword,
+    });
+    await user.save();
+    sessionToken = await user.generateToken();
+
     return res
       .status(200)
       .json({ status: "success", user, token: sessionToken });
