@@ -61,17 +61,21 @@ chatbotController.createChatbot = async (req, res) => {
 //유저의 챗봇 리스트 가져오기
 chatbotController.getChatbots = async (req, res) => {
   try {
-    // 토큰에서 가져온 유저아이디를 기본적으로 사용하기 때문에 아래와 같이 코드 변경 가능성 있음
-    //const{userId} = req;
-    const { userId } = req.params;
+    // const { userId } = req.params;
+    const { userId } = req;
 
-    const validation = validateObjectId(userId, "user_id");
-    if (!validation.isValid) {
-      return res.status(400).json({ message: validation.message });
-    }
+    // const validation = validateObjectId(userId, "user_id");
+    // if (!validation.isValid) {
+    //   return res.status(400).json({ message: validation.message });
+    // }
+    // Error fetching chatbots: ReferenceError: validateObjectId is not defined
+    // 에러때문에 일단 주석해놨습니당 ㅠ
 
     const objectIdUserId = new mongoose.Types.ObjectId(userId);
-    const chatbots = await Chatbot.find({ user_id: objectIdUserId });
+    // `populate`를 사용해 Product 데이터 가져오기
+    const chatbots = await Chatbot.find({ user_id: objectIdUserId }).populate({
+      path: "product_id", // Product 컬렉션 참조
+    });
 
     if (!chatbots || chatbots.length === 0) {
       return res.status(404).json({ message: "No chatbots found" });
@@ -221,6 +225,50 @@ chatbotController.deleteChatbot = async (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to delete chatbot", rawError: error });
+  }
+};
+
+// ================ 신진수 추가 =======================//
+chatbotController.updateChatbotJins = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const chatbotId = id;
+    const { visualization, position, zIndex, flip, name } = req.body;
+
+    // 업데이트 데이터 준비
+    const updateData = {};
+    if (visualization !== undefined) updateData.visualization = visualization;
+    if (position !== undefined) updateData.position = position;
+    if (zIndex !== undefined) updateData.zIndex = zIndex;
+    if (flip !== undefined) updateData.flip = flip;
+    if (name !== undefined) updateData.name = name;
+
+    // 해당 챗봇을 찾기
+    const chatbot = await Chatbot.findOne({ _id: chatbotId });
+    if (!chatbot) {
+      return res.status(404).json({
+        success: false,
+        message: "Chatbot not found or unauthorized",
+      });
+    }
+
+    // 업데이트 수행
+    const updatedChatbot = await Chatbot.findByIdAndUpdate(
+      chatbotId,
+      { $set: updateData },
+      { new: true } // 업데이트 후의 데이터를 반환
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedChatbot,
+    });
+  } catch (error) {
+    console.error("Error updating chatbot:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update chatbot",
+    });
   }
 };
 
