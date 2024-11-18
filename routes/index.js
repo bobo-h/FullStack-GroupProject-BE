@@ -11,7 +11,7 @@ const adminApi = require("./admin.api");
 
 router.use("/user", userApi);
 router.use("/auth", authApi);
-//router.use("/diary", diaryApi);
+router.use("/diary", diaryApi);
 router.use("/chatbot", chatbotApi);
 router.use("/product", productApi);
 router.use("/order", orderApi);
