@@ -31,6 +31,12 @@ router.put(
   authController.authenticate,
   chatbotController.updateChatbotJins
 );
+
+router.put(
+  "/",
+  authController.authenticate,
+  chatbotController.updateChatbotsByUser
+);
 // =========== 신진수 추가 끝 =================//
 
 // GET /api/chatbot/:userId - 사용자의 모든 챗봇을 가져옴
