@@ -233,11 +233,14 @@ chatbotController.updateChatbotJins = async (req, res) => {
   try {
     const { id } = req.params;
     const chatbotId = id;
-    const { visualization, position, zIndex, flip, name } = req.body;
+    const { visualization, position, defaultPosition, zIndex, flip, name } =
+      req.body;
 
     // 업데이트 데이터 준비
     const updateData = {};
     if (visualization !== undefined) updateData.visualization = visualization;
+    if (defaultPosition !== undefined)
+      updateData.defaultPosition = defaultPosition;
     if (position !== undefined) updateData.position = position;
     if (zIndex !== undefined) updateData.zIndex = zIndex;
     if (flip !== undefined) updateData.flip = flip;
@@ -257,7 +260,9 @@ chatbotController.updateChatbotJins = async (req, res) => {
       chatbotId,
       { $set: updateData },
       { new: true } // 업데이트 후의 데이터를 반환
-    );
+    ).populate({
+      path: "product_id", // Product 컬렉션 참조
+    });
 
     res.status(200).json({
       success: true,
