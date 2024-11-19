@@ -5,7 +5,11 @@ const openaiController = require("../controllers/openai.controller");
 const authController = require("../controllers/auth.controller");
 
 // POST /api/chatbot/
-router.post("/", chatbotController.createChatbot);
+router.post(
+  "/", 
+  authController.authenticate,
+  chatbotController.createChatbot
+);
 
 // POST /api/chatbot/printLine
 router.post(
