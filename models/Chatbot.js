@@ -24,6 +24,11 @@ const chatbotSchema = new Schema(
       x: { type: Number, default: 40 },
       y: { type: Number, default: 40 },
     },
+    defaultPosition: {
+      // 메인화면에서 필요
+      x: { type: Number, default: 0 },
+      y: { type: Number, default: 0 },
+    },
     zIndex: { type: Number, default: 2 }, // z-index 값을 저장
     flip: { type: Boolean, default: false }, // 좌우 반전 여부를 저장
     visualization: { type: Boolean, default: true }, // true 또는 false 값을 갖는 필드
