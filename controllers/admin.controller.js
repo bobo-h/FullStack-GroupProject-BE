@@ -7,7 +7,13 @@ adminController.getAllUser = async (req, res) => {
   try {
     const allUsers = await User.find({ isDeleted: false, level: "customer" });
     if (!allUsers) throw new Error("유저리스트가 존재하지 않습니다.");
-    res.status(200).json({ status: "success", allUsers });
+    let response = { status: "success" };
+
+    const totalUserNum = allUsers.length;
+    response.totalUserNum = totalUserNum;
+    response.allUsers = allUsers;
+
+    res.status(200).json(response);
   } catch (error) {
     res.status(400).json({ status: "fail", message: error.message });
   }
