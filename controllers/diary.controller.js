@@ -134,7 +134,6 @@ diaryController.getDiaryDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Diary ID 확인
     if (!id) {
       return res.status(400).json({ message: "Diary ID is required." });
     }
@@ -143,12 +142,12 @@ diaryController.getDiaryDetail = async (req, res) => {
       {
         $match: {
           _id: new mongoose.Types.ObjectId(id),
-          isDeleted: false, // isDeleted 필터링
+          isDeleted: false,
         },
       },
       {
         $lookup: {
-          from: "moods", // Mood 컬렉션 이름
+          from: "moods",
           localField: "mood",
           foreignField: "_id",
           as: "moodDetails",
@@ -157,7 +156,7 @@ diaryController.getDiaryDetail = async (req, res) => {
       {
         $unwind: {
           path: "$moodDetails",
-          preserveNullAndEmptyArrays: true, // 무드가 없는 경우에도 데이터를 유지
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -185,7 +184,7 @@ diaryController.getDiaryDetail = async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      diary: diary[0], // Aggregate 결과가 배열이므로 첫 번째 요소 선택
+      diary: diary[0],
     });
   } catch (error) {
     res.status(500).json({ status: "fail", error: error.message });
