@@ -75,15 +75,8 @@ orderController.getOrderList = async (req, res, next) => {
 
         const orderList = await Order.find(cond)
             .sort({ createdAt: -1 }) // 최신순으로 정렬
-            // .populate("userId")
-            // .populate({
-            //     path: "items",
-            //     populate: {
-            //         path: "productId",
-            //         model: "Product",
-            //         select: "image name",
-            //     },
-            //})
+            .populate("userId")
+            .populate("productId")
             .skip((page - 1) * PAGE_SIZE)
             .limit(PAGE_SIZE);
 
