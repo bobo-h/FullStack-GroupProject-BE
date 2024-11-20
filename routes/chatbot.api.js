@@ -10,7 +10,7 @@ router.post("/", chatbotController.createChatbot);
 // POST /api/chatbot/printLine
 router.post(
   "/printLine",
-  openaiController.chatbotMessagePersonality,
+  // openaiController.chatbotMessagePersonality,
   openaiController.createPrintLine
 );
 
