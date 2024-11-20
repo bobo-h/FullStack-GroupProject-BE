@@ -59,7 +59,7 @@ openaiController.createChatbotMessage = async (req, res) => {
     }
 
     const { systemMessage, personalityContent } =
-      chatbotController.chatbotMessagePersonality(catPersonality, 20);
+      openaiController.chatbotMessagePersonality(catPersonality, 20);
 
     const formattedMessages = [{ role: "user", content: message[0] }];
     let currentMessage = message[0];
