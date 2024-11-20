@@ -261,4 +261,91 @@ diaryController.updateDiary = async (req, res) => {
   }
 };
 
+diaryController.filterByDate = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { year, month, page = 1, limit = 10 } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    if (!year || !month) {
+      return res.status(400).json({ message: "Year and month are required." });
+    }
+
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+
+    const diaries = await Diary.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          isDeleted: false,
+          $expr: {
+            $and: [
+              { $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)] },
+              { $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)] },
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "moods",
+          localField: "mood",
+          foreignField: "_id",
+          as: "moodDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$moodDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          id: "$_id",
+          title: 1,
+          content: 1,
+          image: 1,
+          selectedDate: 1,
+          mood: {
+            id: "$moodDetails._id",
+            name: "$moodDetails.name",
+            image: "$moodDetails.image",
+          },
+          isEdited: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+      { $sort: { selectedDate: -1 } },
+      { $skip: (pageNumber - 1) * pageSize },
+      { $limit: pageSize },
+    ]);
+
+    const totalDiaries = await Diary.countDocuments({
+      userId: new mongoose.Types.ObjectId(userId),
+      isDeleted: false,
+      $expr: {
+        $and: [
+          { $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)] },
+          { $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)] },
+        ],
+      },
+    });
+
+    res.status(200).json({
+      data: diaries,
+      count: totalDiaries,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalDiaries / pageSize),
+    });
+  } catch (error) {
+    res.status(500).json({ status: "fail", error: error.message });
+  }
+};
+
 module.exports = diaryController;
