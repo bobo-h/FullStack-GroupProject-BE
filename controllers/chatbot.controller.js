@@ -277,4 +277,60 @@ chatbotController.updateChatbotJins = async (req, res) => {
   }
 };
 
+chatbotController.updateChatbotsByUser = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { updates } = req.body; // 클라이언트에서 받은 업데이트 데이터 (배열 형태)
+    const objectIdUserId = new mongoose.Types.ObjectId(userId);
+
+    // 업데이트 요청 검증
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No updates provided",
+      });
+    }
+
+    // Bulk 업데이트 수행
+    const bulkOps = updates.map(({ _id, user_id, ...updateData }) => ({
+      updateOne: {
+        filter: {
+          _id: new mongoose.Types.ObjectId(_id),
+          user_id: objectIdUserId,
+        }, // userId로 제한
+        update: { $set: updateData },
+      },
+    }));
+
+    const result = await Chatbot.bulkWrite(bulkOps);
+
+    // 업데이트 결과 확인
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No chatbots were updated",
+      });
+    }
+
+    // 업데이트 후 해당 유저의 챗봇 리스트 반환
+    const chatbots = await Chatbot.find({ user_id: objectIdUserId }).populate({
+      path: "product_id", // Product 컬렉션 참조
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Chatbots updated successfully",
+      updatedCount: result.modifiedCount,
+      data: chatbots,
+    });
+  } catch (error) {
+    console.error("Error updating chatbots:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update chatbots",
+      rawError: error,
+    });
+  }
+};
+
 module.exports = chatbotController;
