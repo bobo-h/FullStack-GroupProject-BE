@@ -3,7 +3,7 @@ const Diary = require("../models/Diary");
 
 const diaryController = {};
 
-diaryController.createDiary = async (req, res) => {
+diaryController.createDiary = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { title, content, image, selectedDate, mood } = req.body;
@@ -20,10 +20,17 @@ diaryController.createDiary = async (req, res) => {
     });
     await newDiary.save();
 
-    res.status(200).json({
-      status: "success",
-      diary: newDiary,
-    });
+    // diary 생성 후에도 res, comment 생성 후에도 res
+    // 서버가 클라이언트로 HTTP 응답을 두번 이상 보내려고 할때 발생
+    // res.status(200).json({
+    //   status: "success",
+    //   diary: newDiary,
+    // });
+
+    // diaryId를 다음 챗봇댓글 생성에 보내주기 위해 작성
+    req.diaryId = newDiary._id;
+    //미들웨어로 쓰기 위해 추가
+    next();
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }

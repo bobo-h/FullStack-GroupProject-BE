@@ -9,7 +9,7 @@ const orderApi = require("./order.api");
 const moodApi = require("./mood.api");
 const adminApi = require("./admin.api");
 const salesApi = require("./sales.api");
-const commentApi = require("./comment.api")
+const commentApi = require("./comment.api");
 
 router.use("/user", userApi);
 router.use("/auth", authApi);

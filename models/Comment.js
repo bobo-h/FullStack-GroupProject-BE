@@ -3,14 +3,21 @@ const Schema = mongoose.Schema;
 
 const commentSchema = new mongoose.Schema(
   {
-    diaryId: { type: mongoose.Schema.Types.ObjectId, ref: "Post", required: true }, // 게시글 ID
+    diaryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+      required: true,
+    }, // 게시글 ID
     // userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // 댓글 작성자
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // 댓글 작성자
-    chatbotId: { type: mongoose.Schema.Types.ObjectId, ref:"Chatbot"},
-    
-    //userType: { type: String, required: true }, // Human or AI 
+    chatbotId: { type: mongoose.Schema.Types.ObjectId, ref: "Chatbot" },
     content: { type: String, required: true }, // 댓글 내용
-    parentCommentId: { type: mongoose.Schema.Types.ObjectId, ref: "Comment", default: null }, // 부모 댓글
+    //userType: { type: String, required: true }, // Human or AI
+    parentCommentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
+    }, // 부모 댓글
     likes: { type: Number, default: 0 }, // 좋아요 수
     dislikes: { type: Number, default: 0 }, // 싫어요 수
   },

@@ -5,11 +5,7 @@ const openaiController = require("../controllers/openai.controller");
 const authController = require("../controllers/auth.controller");
 
 // POST /api/chatbot/
-router.post(
-  "/", 
-  authController.authenticate,
-  chatbotController.createChatbot
-);
+router.post("/", authController.authenticate, chatbotController.createChatbot);
 
 // POST /api/chatbot/printLine
 router.post(
@@ -18,12 +14,12 @@ router.post(
   openaiController.createPrintLine
 );
 
-// POST /api/chatbot/comment
-router.post(
-  "/comment",
-  openaiController.chatbotMessagePersonality,
-  openaiController.createChatbotMessage
-);
+// POST /api/chatbot/comment // 다희 주석처리
+// router.post(
+//   "/comment",
+//   openaiController.chatbotMessagePersonality,
+//   openaiController.createChatbotMessage
+// );
 
 // =========== 신진수 추가 =================//
 // GET /api/chatbot/me - 사용자의 챗봇을 가져옴

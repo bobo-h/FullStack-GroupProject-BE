@@ -40,7 +40,7 @@ chatbotController.createChatbot = async (req, res) => {
     const user_id = userId;
 
     if (!product_id || !name || !personality) {
-      return res.status(400).json({ error: '필수 값이 누락되었습니다.' });
+      return res.status(400).json({ error: "필수 값이 누락되었습니다." });
     }
 
     const newChatbot = new Chatbot({
@@ -340,4 +340,21 @@ chatbotController.updateChatbotsByUser = async (req, res) => {
   }
 };
 
-module.exports = chatbotController;
+//챗봇 리스트 불러오는 것 유틸 함수로 만들기 --TEST DAHEE
+const getUserChatbots = async (userId) => {
+  try {
+    const objectIdUserId = new mongoose.Types.ObjectId(userId);
+    const userChatbots = await Chatbot.find({
+      user_id: objectIdUserId,
+      visualization: true,
+    }).populate({
+      path: "product_id", // Product 컬렉션 참조
+    });
+    return userChatbots;
+  } catch (error) {
+    console.error("Error fetching chatbots:", error);
+    throw new Error("Failed to fetch chatbots");
+  }
+};
+
+module.exports = { getUserChatbots, ...chatbotController };
