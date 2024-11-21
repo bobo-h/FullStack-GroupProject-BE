@@ -20,7 +20,7 @@ router.get("/:id", authController.authenticate, diaryController.getDiaryDetail);
 router.put("/:id", authController.authenticate, diaryController.updateDiary);
 router.delete("/:id", authController.authenticate, diaryController.deleteDiary);
 router.patch(
-  "/:id/restore",
+  "/restore/:id",
   authController.authenticate,
   diaryController.restoreDiary
 );
