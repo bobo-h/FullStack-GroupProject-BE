@@ -6,12 +6,12 @@ const router = express.Router();
 
 router.post("/", authController.authenticate, diaryController.createDiary);
 router.get("/", authController.authenticate, diaryController.getDiaryList);
-router.get("/:id", authController.authenticate, diaryController.getDiaryDetail);
 router.get(
   "/filter",
   authController.authenticate,
   diaryController.filterByDate
 );
+router.get("/:id", authController.authenticate, diaryController.getDiaryDetail);
 router.put("/:id", authController.authenticate, diaryController.updateDiary);
 router.delete("/:id", authController.authenticate, diaryController.deleteDiary);
 

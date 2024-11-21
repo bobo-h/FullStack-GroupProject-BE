@@ -270,26 +270,30 @@ diaryController.filterByDate = async (req, res) => {
       return res.status(400).json({ message: "User ID is required." });
     }
 
-    if (!year || !month) {
-      return res.status(400).json({ message: "Year and month are required." });
-    }
-
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
 
+    const matchConditions = {
+      userId: new mongoose.Types.ObjectId(userId),
+      isDeleted: false,
+    };
+
+    if (year) {
+      matchConditions.$expr = {
+        ...(matchConditions.$expr || {}),
+        $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)],
+      };
+    }
+
+    if (month) {
+      matchConditions.$expr = {
+        ...(matchConditions.$expr || {}),
+        $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)],
+      };
+    }
+
     const diaries = await Diary.aggregate([
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          isDeleted: false,
-          $expr: {
-            $and: [
-              { $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)] },
-              { $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)] },
-            ],
-          },
-        },
-      },
+      { $match: matchConditions },
       {
         $lookup: {
           from: "moods",
@@ -329,12 +333,12 @@ diaryController.filterByDate = async (req, res) => {
     const totalDiaries = await Diary.countDocuments({
       userId: new mongoose.Types.ObjectId(userId),
       isDeleted: false,
-      $expr: {
-        $and: [
-          { $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)] },
-          { $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)] },
-        ],
-      },
+      ...(year && {
+        $expr: { $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)] },
+      }),
+      ...(month && {
+        $expr: { $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)] },
+      }),
     });
 
     res.status(200).json({
