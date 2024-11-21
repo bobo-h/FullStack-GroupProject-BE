@@ -322,4 +322,75 @@ diaryController.getFilterOptions = async (req, res) => {
   }
 };
 
+diaryController.getDeletedDiaryList = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    const { page = 1, limit = 10 } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+
+    const deletedDiaries = await Diary.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      isDeleted: true,
+    })
+      .sort({ selectedDate: -1 })
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .select("_id title content image selectedDate mood createdAt updatedAt");
+
+    const totalDeletedCount = await Diary.countDocuments({
+      userId: new mongoose.Types.ObjectId(userId),
+      isDeleted: true,
+    });
+
+    const totalPages = Math.ceil(totalDeletedCount / pageSize);
+
+    res.status(200).json({
+      data: deletedDiaries,
+      currentPage: pageNumber,
+      totalPages,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "fail", error: error.message });
+  }
+};
+
+diaryController.restoreDiary = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Diary ID is required." });
+    }
+
+    const diary = await Diary.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      isDeleted: true, // 삭제된 상태의 다이어리만 복구 가능
+    });
+
+    if (!diary) {
+      return res
+        .status(404)
+        .json({ message: "Diary not found or not deleted." });
+    }
+
+    diary.isDeleted = false;
+    await diary.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Diary successfully restored.",
+      diary,
+    });
+  } catch (error) {
+    res.status(500).json({ status: "fail", error: error.message });
+  }
+};
+
 module.exports = diaryController;

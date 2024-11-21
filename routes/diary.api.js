@@ -11,8 +11,18 @@ router.get(
   authController.authenticate,
   diaryController.getFilterOptions
 );
+router.get(
+  "/deleted",
+  authController.authenticate,
+  diaryController.getDeletedDiaryList
+);
 router.get("/:id", authController.authenticate, diaryController.getDiaryDetail);
 router.put("/:id", authController.authenticate, diaryController.updateDiary);
 router.delete("/:id", authController.authenticate, diaryController.deleteDiary);
+router.patch(
+  "/:id/restore",
+  authController.authenticate,
+  diaryController.restoreDiary
+);
 
 module.exports = router;
