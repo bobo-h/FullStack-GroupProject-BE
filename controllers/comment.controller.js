@@ -8,19 +8,29 @@ require("dotenv").config();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
+// 유저와 챗봇 댓글 동시 생성?
 commentController.createComment = async (req, res) => {
   try {
-    const { diaryId, content, parentCommentId } = req.body; // 클라이언트에서 전달받은 데이터
-    const { userId, chatbotId } = req.body;
+    // 1. 유저만이 댓글 폼을 통해서 댓글 작성
+    // 2. req.body의 userId는 null 값
+    // 3. authenticate로 userId를 불러옴
+    // 4. 유저의 댓글 생성 (diaryId, content (유저가 쓴 내용), parentCommentId 이용)
+
+    const { diaryId, content, parentCommentId, chatbotId, personality } =
+      req.body; // 클라이언트에서 전달받은 데이터
+    let { userId } = req.body;
     // const userId = req.user._id; // 인증된 사용자의 ID
 
-    // 필수 값 확인
-    if (!userId && !chatbotId) {
-      return res.status(400).json({
-        status: "fail",
-        message: "userId와 chatbotId 중 하나는 입력해야 합니다.",
-      });
+    if (!userId) {
+      userId = req.userId;
     }
+    // // 필수 값 확인
+    // if (!userId && !chatbotId) {
+    //   return res.status(400).json({
+    //     status: "fail",
+    //     message: "userId와 chatbotId 중 하나는 입력해야 합니다.",
+    //   });
+    // }
 
     if (!diaryId || !content) {
       return res.status(400).json({
@@ -29,22 +39,62 @@ commentController.createComment = async (req, res) => {
       });
     }
 
-    // 새로운 댓글 생성
-    const newComment = new Comment({
+    // 일단 유저 댓글 생성
+    const newUserComment = new Comment({
       diaryId,
-      userId: userId || null,
-      chatbotId: chatbotId || null,
+      userId,
+      chatbotId: null,
       content,
-      parentCommentId: parentCommentId || null, // 대댓글이 아닌 경우 null
+      parentCommentId: parentCommentId,
+      //parentCommentId: parentCommentId || null, // 대댓글이 아닌 경우 null
     });
 
-    // 데이터베이스에 저장
-    const savedComment = await newComment.save();
+    // 유저 댓글 DB에 저장
+    // 작성한 유저의 아이디를 챗봇의 parentCommentId로 사용하기 위해 추출
+    const savedUserComment = await newUserComment.save();
+
+    // 바로 유저의 댓글에 따른 챗봇 댓글 생성 (챗봅 성격 가져와야 함)
+    // 성격과 기본 시스템 메시지를 기반으로 OpenAI 메시지 생성
+    const { systemMessage, personalityContent } =
+      openaiController.chatbotMessagePersonality(personality, 20);
+
+    const formattedMessages = [{ role: "user", content }]; // 초기 메시지 설정
+    let currentMessage = content; // OpenAI와 대화의 시작 메시지
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `${systemMessage} ${personalityContent}`,
+        },
+        { role: "user", content: currentMessage },
+      ],
+    });
+
+    let reply = completion.choices[0].message.content.trim();
+    if (reply.length > 20) {
+      reply = reply.substring(0, 20);
+    }
+
+    formattedMessages.push({ role: "assistant", content: reply });
+
+    // Comment 스키마에 챗봇 댓글 생성
+    const newChatbotComment = await Comment.create({
+      diaryId,
+      userId: null, // 사용자 ID는 null로 설정 (챗봇이 생성한 경우)
+      chatbotId,
+      content: reply, // 댓글 내용
+      parentCommentId: savedUserComment._id, // 방금 작성한 유저 댓글의 아이디
+    });
+
+    await newChatbotComment.save();
 
     res.status(200).json({
       status: "success",
       message: "댓글이 성공적으로 생성되었습니다.",
-      data: savedComment,
+      //데이터 보낼 필요 없는 거 같아 일단 주석처리
+      // data :
     });
   } catch (error) {
     console.error("Error creating comment:", error);
@@ -69,8 +119,23 @@ commentController.getComment = async (req, res) => {
     }
 
     // 해당 diaryId에 속한 댓글 가져오기
+    // const comments = await Comment.find({ diaryId })
+    //   .populate("userId", "name email") // userId를 populate하여 사용자 정보 포함
+    //   .sort({ createdAt: 1 }) // 생성 시간순으로 정렬
+    //   .lean(); // Mongoose 문서를 일반 JavaScript 객체로 변환
+
     const comments = await Comment.find({ diaryId })
-      .populate("userId", "name email") // userId를 populate하여 사용자 정보 포함
+      .populate({
+        path: "userId",
+        select: "name email",
+      })
+      .populate({
+        path: "chatbotId", // chatbotId를 참조
+        populate: {
+          path: "product_id", // Product 컬렉션 참조
+          select: "image", // Product에서 image 필드만 가져옴 (댓글 쪽에서 이미지 넣는 곳이 있어서)
+        },
+      })
       .sort({ createdAt: 1 }) // 생성 시간순으로 정렬
       .lean(); // Mongoose 문서를 일반 JavaScript 객체로 변환
 
@@ -167,7 +232,9 @@ commentController.createChatbotMessage = async (req, res) => {
           parentCommentId: null, // 부모 댓글 ID (최상위 댓글)
         });
 
-        // 생성된 댓글 정보를 배열에 추가
+        await newComment.save();
+
+        // 생성된 댓글 정보를 배열에 추가 (필요 X)
         createdComments.push(newComment);
       }
     }
