@@ -26,7 +26,6 @@ chatbotController.createChatbot = async (req, res) => {
   try {
     // const userId = req.user._id; -> 미들웨어로 사용자 정보를 가져올때 여기있을 가능성이 높아보입니당.
     const {
-      // user_id = req.body.user_id,
       product_id = req.body.product_id,
       name,
       personality,
@@ -36,13 +35,13 @@ chatbotController.createChatbot = async (req, res) => {
       visualization,
     } = req.body;
 
-    console.log("user_id : ", user_id);
-    console.log("product_id : ", product_id);
+    //const user_id = req.body.user_id;
+    const { userId } = req;
+    const user_id = userId;
+
     if (!product_id || !name || !personality) {
       return res.status(400).json({ error: "필수 값이 누락되었습니다." });
     }
-
-    const user_id = req.user.user_id;
 
     const newChatbot = new Chatbot({
       user_id,
