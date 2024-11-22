@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const authController = require("../controllers/auth.controller");
 const adminController = require("../controllers/admin.controller");
 
 // 회원 리스트 가져오기
@@ -15,5 +14,7 @@ router.get("/allAdmin", adminController.getAllAdmin);
 router.put("/:id", adminController.editLevel);
 // 탈퇴일로부터 90일이상의 회원 (로그인 자격 O) 모두 삭제하기
 router.delete("/", adminController.deleteAllEligibleUsers);
+// 유저 검색
+router.get("/users", adminController.getSearchUsers);
 
 module.exports = router;
