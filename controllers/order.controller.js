@@ -64,12 +64,24 @@ orderController.getOrder = async (req, res, next) => {
 
 orderController.getOrderList = async (req, res, next) => {
     try {
-        const { page = 1, ordernum } = req.query;
+        const { page = 1, ordernum, orderitem, orderemail } = req.query;
         let cond = {}
 
         if (ordernum) {
             cond = {
                 orderNum: { $regex: ordernum, $options: "i" },
+            };
+        }
+
+        if (orderitem) {
+            cond = {
+                productName: { $regex: orderitem, $options: "i" },
+            };
+        }
+
+        if (orderemail) {
+            cond = {
+                email: { $regex: orderemail, $options: "i" },
             };
         }
 

@@ -46,12 +46,12 @@ salesController.getProductSales = async (req, res) => {
 salesController.getDailySales = async (req, res) => {
     try {
       const twoWeeksAgo = new Date();
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14); // 현재 날짜로부터 14일 전 계산
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 7); // 현재 날짜로부터 7일 전 계산
   
       const dailySales = await Order.aggregate([
         {
           $match: {
-            createdAt: { $gte: twoWeeksAgo }, // 최근 2주간 데이터만 필터링
+            createdAt: { $gte: twoWeeksAgo }, // 최근 1주간 데이터만 필터링
           },
         },
         {
