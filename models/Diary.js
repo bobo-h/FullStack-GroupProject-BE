@@ -15,9 +15,10 @@ const diarySchema = Schema(
   { timestamps: true }
 );
 
-// 다이어리 수정 여부를 위한 미들웨어
 diarySchema.pre("save", function (next) {
-  if (this.isModified()) {
+  if (this.isNew) {
+    this.isEdited = false;
+  } else if (this.isModified()) {
     this.isEdited = true;
   }
   next();
