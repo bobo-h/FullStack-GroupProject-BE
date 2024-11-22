@@ -87,6 +87,7 @@ diaryController.getDiaryList = async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      { $sort: { selectedDate: -1 } },
       {
         $group: {
           _id: {
