@@ -123,5 +123,67 @@ adminController.deleteAllEligibleUsers = async (req, res) => {
     res.status(400).json({ status: "fail", message: error.message });
   }
 };
+// 유저 검색
+adminController.getSearchUsers = async (req, res) => {
+  try {
+    const { search, type } = req.query;
+
+    // 데이터를 임시 저장할 객체 생성
+    let dataContainer = {};
+    const mockRes = {
+      status: (code) => {
+        dataContainer.statusCode = code;
+        return mockRes;
+      },
+      json: (data) => {
+        dataContainer.response = data;
+      },
+    };
+
+    // type에 따라 다른 함수 호출
+    switch (type) {
+      case "allUser":
+        await adminController.getAllUser(req, mockRes);
+        break;
+      case "ineligibleUser":
+        await adminController.getIneligibleUser(req, mockRes);
+        break;
+      case "eligibleUser":
+        await adminController.getEligibleUser(req, mockRes);
+        break;
+      case "allAdmin":
+        await adminController.getAllAdmin(req, mockRes);
+        break;
+      default:
+        return res
+          .status(400)
+          .json({ status: "fail", message: "유효하지 않은 타입입니다." });
+    }
+
+    // 응답 데이터가 성공 상태인지 확인
+    if (dataContainer.response?.status === "success") {
+      let results =
+        dataContainer.response.allUsers ||
+        dataContainer.response.ineligibleUsers ||
+        dataContainer.response.eligibleUsers ||
+        dataContainer.response.allAdmins ||
+        [];
+      if (search) {
+        // 검색어로 필터링
+        const regex = new RegExp(search, "i");
+        results = results.filter(
+          (user) => regex.test(user.name) || regex.test(user.email)
+        );
+      }
+      return res.status(200).json({ status: "success", data: results });
+    }
+    // 실패 상태 응답 반환
+    return res
+      .status(dataContainer.statusCode || 500)
+      .json(dataContainer.response);
+  } catch (error) {
+    return res.status(500).json({ status: "fail", message: error.message });
+  }
+};
 
 module.exports = adminController;
