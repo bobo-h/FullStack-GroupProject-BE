@@ -7,14 +7,16 @@ diaryController.createDiary = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { title, content, image, selectedDate, mood } = req.body;
-    if (!title || !content || !image || !selectedDate || !mood) {
-      return res.status(400).json({ message: "All fields are required." });
+    if (!title || !content || !selectedDate || !mood) {
+      return res.status(400).json({
+        message: "Title, content, selectedDate, and mood are required.",
+      });
     }
     const newDiary = new Diary({
       userId,
       title,
       content,
-      image,
+      image: image || null,
       selectedDate,
       mood,
     });
@@ -87,7 +89,7 @@ diaryController.getDiaryList = async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      { $sort: { selectedDate: -1 } },
+      { $sort: { selectedDate: -1, createdAt: -1 } },
       {
         $group: {
           _id: {
@@ -270,7 +272,7 @@ diaryController.updateDiary = async (req, res) => {
 
     diary.title = title;
     diary.content = content;
-    diary.image = image;
+    diary.image = image || diary.image;
     diary.selectedDate = selectedDate;
     diary.mood = mood;
 
