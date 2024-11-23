@@ -58,7 +58,7 @@ productController.getProducts = async (req, res) => {
     let response = { status: "success" };
     if (page) {
       query.skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE);
-      // 총 몇개의 페이지가 있는지?
+     
       // 데이터가 총 몇개 있는지 체크해서 페이지 사이즈로 나눈다.
       const totalItemNum = await Product.countDocuments(cond);
       const totalPageNum = Math.ceil(totalItemNum / PAGE_SIZE);
@@ -87,7 +87,6 @@ productController.updateProduct = async (req, res) => {
       defaultProduct,
     } = req.body;
 
-    // TODO HERE 여기 다시 보기
     const product = await Product.findByIdAndUpdate(
       { _id: productId },
       {
