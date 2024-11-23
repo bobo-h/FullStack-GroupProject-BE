@@ -256,10 +256,13 @@ diaryController.updateDiary = async (req, res) => {
       return res.status(400).json({ message: "Diary ID is required." });
     }
 
-    if (!title || !content || !image || !selectedDate || !mood) {
+    if (!title || !content || !selectedDate || !mood) {
       return res
         .status(400)
-        .json({ message: "All fields are required for updating." });
+        .json({
+          message:
+            "Title, content, selectedDate, and mood are required for updating.",
+        });
     }
 
     const diary = await Diary.findOne({ _id: id });
