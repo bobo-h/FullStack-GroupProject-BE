@@ -3,7 +3,6 @@ require("dotenv").config();
 
 const openaiController = {};
 
-// OpenAI API 설정
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
@@ -26,9 +25,9 @@ const CAT_PERSONALITY = {
   INTP: "analytical, curious, and open-minded. They love exploring abstract concepts and seeking deep understanding. 고양이이고 반말을 한다.",
 };
 
-// 챗봇성격 및 시스템 메시지를 생성하는 함수
+
 openaiController.chatbotMessagePersonality = (catPersonality, maxLength) => {
-  // catPersonality가 CAT_PERSONALITY 객체에 정의된 키가 아니면 그대로 문자열을 사용
+
   const personalityContent = CAT_PERSONALITY[catPersonality] || catPersonality;
 
   if (!personalityContent) {
@@ -40,63 +39,9 @@ openaiController.chatbotMessagePersonality = (catPersonality, maxLength) => {
   return { systemMessage, personalityContent };
 };
 
-// 챗봇 - 댓글/대댓글
-// openaiController.createChatbotMessage = async (req, res) => {
-//   try {
-//     const { message, allowedReplies, catPersonality } = req.body;
-
-//     if (!Array.isArray(message) || message.length === 0) {
-//       return res.status(400).json({ error: "Invalid message array" });
-//     }
-//     if (
-//       !allowedReplies ||
-//       typeof allowedReplies !== "number" ||
-//       allowedReplies <= 0
-//     ) {
-//       return res
-//         .status(400)
-//         .json({ error: "Invalid number of allowed replies" });
-//     }
-
-//     //성격 보내주면 Open AI가 메세지 받아옴
-//     const { systemMessage, personalityContent } =
-//       openaiController.chatbotMessagePersonality(catPersonality, 20);
-
-//     const formattedMessages = [{ role: "user", content: message[0] }];
-//     let currentMessage = message[0];
-
-//     for (let i = 0; i < allowedReplies; i++) {
-//       const completion = await openai.chat.completions.create({
-//         model: "gpt-4o-mini",
-//         messages: [
-//           { role: "system", content: `${systemMessage} ${personalityContent}` },
-//           { role: "user", content: currentMessage },
-//         ],
-//       });
-
-//       let reply = completion.choices[0].message.content.trim();
-//       if (reply.length > 20) {
-//         reply = reply.substring(0, 20);
-//       }
-
-//       formattedMessages.push({ role: "assistant", content: reply });
-//       currentMessage = reply;
-//     }
-
-//     res.status(200).json({ reply: formattedMessages });
-//   } catch (error) {
-//     console.error("Error during OpenAI API chatbotMessage request:", error);
-//     res
-//       .status(400)
-//       .json({ error: "AI request chatbotMessage failed", rawError: error });
-//   }
-// };
-
-// 챗봇 - 메인화면 말풍선
 openaiController.createPrintLine = async (req, res) => {
   try {
     const { message, catPersonality } = req.body;
-    // console.log("잘 도착하니?", message, catPersonality);
 
     const { systemMessage, personalityContent } =
       openaiController.chatbotMessagePersonality(catPersonality, 10);
@@ -111,14 +56,11 @@ openaiController.createPrintLine = async (req, res) => {
     });
 
     let reply = completion.choices[0].message.content.trim();
-    // console.log("잘 도착하니?222", reply);
     if (reply.length > 10) {
       reply = reply.substring(0, 10);
     }
-    // console.log("잘 도착하니?333", reply);
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("Error during OpenAI API printLine request:", error);
     res
       .status(400)
       .json({ error: "AI request printLine failed", rawError: error });
