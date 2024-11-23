@@ -7,29 +7,21 @@ diaryController.createDiary = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { title, content, image, selectedDate, mood } = req.body;
-    if (!title || !content || !image || !selectedDate || !mood) {
-      return res.status(400).json({ message: "All fields are required." });
+    if (!title || !content || !selectedDate || !mood) {
+      return res.status(400).json({
+        message: "Title, content, selectedDate, and mood are required.",
+      });
     }
     const newDiary = new Diary({
       userId,
       title,
       content,
-      image,
+      image: image || null,
       selectedDate,
       mood,
     });
     await newDiary.save();
-
-    // diary 생성 후에도 res, comment 생성 후에도 res
-    // 서버가 클라이언트로 HTTP 응답을 두번 이상 보내려고 할때 발생
-    // res.status(200).json({
-    //   status: "success",
-    //   diary: newDiary,
-    // });
-
-    // diaryId를 다음 챗봇댓글 생성에 보내주기 위해 작성
     req.diaryId = newDiary._id;
-    //미들웨어로 쓰기 위해 추가
     next();
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
@@ -40,37 +32,30 @@ diaryController.getDiaryList = async (req, res) => {
   try {
     const userId = req.userId;
     const { year, month, page = 1, limit = 5 } = req.query;
-
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
-
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
-
     const matchConditions = {
       userId: new mongoose.Types.ObjectId(userId),
       isDeleted: false,
     };
-
     if (year || month) {
       matchConditions.$expr = {
         $and: [],
       };
-
       if (year) {
         matchConditions.$expr.$and.push({
           $eq: [{ $year: "$selectedDate" }, parseInt(year, 10)],
         });
       }
-
       if (month) {
         matchConditions.$expr.$and.push({
           $eq: [{ $month: "$selectedDate" }, parseInt(month, 10)],
         });
       }
     }
-
     const diaries = await Diary.aggregate([
       { $match: matchConditions },
       {
@@ -87,6 +72,7 @@ diaryController.getDiaryList = async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      { $sort: { selectedDate: -1, createdAt: -1 } },
       {
         $group: {
           _id: {
@@ -129,7 +115,6 @@ diaryController.getDiaryList = async (req, res) => {
       { $skip: (pageNumber - 1) * pageSize },
       { $limit: pageSize },
     ]);
-
     const totalGroups = await Diary.aggregate([
       { $match: matchConditions },
       {
@@ -141,9 +126,7 @@ diaryController.getDiaryList = async (req, res) => {
         },
       },
     ]);
-
     const totalPages = Math.ceil(totalGroups.length / pageSize);
-
     res.status(200).json({
       data: diaries,
       currentPage: pageNumber,
@@ -157,11 +140,9 @@ diaryController.getDiaryList = async (req, res) => {
 diaryController.getDiaryDetail = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!id) {
       return res.status(400).json({ message: "Diary ID is required." });
     }
-
     const diary = await Diary.aggregate([
       {
         $match: {
@@ -201,11 +182,9 @@ diaryController.getDiaryDetail = async (req, res) => {
         },
       },
     ]);
-
     if (!diary || diary.length === 0) {
       return res.status(404).json({ message: "Diary not found." });
     }
-
     res.status(200).json({
       status: "success",
       diary: diary[0],
@@ -218,22 +197,17 @@ diaryController.getDiaryDetail = async (req, res) => {
 diaryController.deleteDiary = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!id) {
       return res.status(400).json({ message: "Diary ID is required." });
     }
-
     const diary = await Diary.findById(id);
-
     if (!diary || diary.isDeleted) {
       return res
         .status(404)
         .json({ message: "Diary not found or already deleted." });
     }
-
     diary.isDeleted = true;
     await diary.save();
-
     res.status(200).json({
       status: "success",
       message: "Diary successfully deleted.",
@@ -248,33 +222,31 @@ diaryController.updateDiary = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, image, selectedDate, mood } = req.body;
-
     if (!id) {
       return res.status(400).json({ message: "Diary ID is required." });
     }
-
-    if (!title || !content || !image || !selectedDate || !mood) {
-      return res
-        .status(400)
-        .json({ message: "All fields are required for updating." });
+    if (!title || !content || !selectedDate || !mood) {
+      return res.status(400).json({
+        message:
+          "Title, content, selectedDate, and mood are required for updating.",
+      });
     }
-
     const diary = await Diary.findOne({ _id: id });
-
     if (!diary || diary.isDeleted) {
       return res
         .status(404)
         .json({ message: "Diary not found or has been deleted." });
     }
-
     diary.title = title;
     diary.content = content;
-    diary.image = image;
+    if (image === "") {
+      diary.image = null;
+    } else if (image) {
+      diary.image = image;
+    }
     diary.selectedDate = selectedDate;
     diary.mood = mood;
-
     await diary.save();
-
     res.status(200).json({
       status: "success",
       message: "Diary successfully updated.",
@@ -288,11 +260,9 @@ diaryController.updateDiary = async (req, res) => {
 diaryController.getFilterOptions = async (req, res) => {
   try {
     const userId = req.userId;
-
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
-
     const filterOptions = await Diary.aggregate([
       {
         $match: {
@@ -315,14 +285,12 @@ diaryController.getFilterOptions = async (req, res) => {
         },
       },
     ]);
-
     if (!filterOptions || filterOptions.length === 0) {
       return res.status(200).json({
         years: [],
         months: [],
       });
     }
-
     res.status(200).json(filterOptions[0]);
   } catch (error) {
     res.status(500).json({ status: "fail", error: error.message });
@@ -332,16 +300,12 @@ diaryController.getFilterOptions = async (req, res) => {
 diaryController.getDeletedDiaryList = async (req, res) => {
   try {
     const userId = req.userId;
-
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
-
     const { page = 1, limit = 10 } = req.query;
-
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
-
     const deletedDiaries = await Diary.find({
       userId: new mongoose.Types.ObjectId(userId),
       isDeleted: true,
@@ -350,14 +314,11 @@ diaryController.getDeletedDiaryList = async (req, res) => {
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .select("_id title content image selectedDate mood createdAt updatedAt");
-
     const totalDeletedCount = await Diary.countDocuments({
       userId: new mongoose.Types.ObjectId(userId),
       isDeleted: true,
     });
-
     const totalPages = Math.ceil(totalDeletedCount / pageSize);
-
     res.status(200).json({
       data: deletedDiaries,
       currentPage: pageNumber,
@@ -371,25 +332,21 @@ diaryController.getDeletedDiaryList = async (req, res) => {
 diaryController.restoreDiary = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!id) {
       return res.status(400).json({ message: "Diary ID is required." });
     }
 
     const diary = await Diary.findOne({
       _id: new mongoose.Types.ObjectId(id),
-      isDeleted: true, // 삭제된 상태의 다이어리만 복구 가능
+      isDeleted: true,
     });
-
     if (!diary) {
       return res
         .status(404)
         .json({ message: "Diary not found or not deleted." });
     }
-
     diary.isDeleted = false;
     await diary.save();
-
     res.status(200).json({
       status: "success",
       message: "Diary successfully restored.",

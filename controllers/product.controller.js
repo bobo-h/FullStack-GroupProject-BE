@@ -35,13 +35,24 @@ productController.createProduct = async (req, res) => {
 
 productController.getProducts = async (req, res) => {
   try {
-    const { page, name } = req.query;
+    const { page, name, defaultProduct, category } = req.query;
+
     const cond = name
       ? {
           name: { $regex: name, $options: "i" },
           isActive: "Active",
         }
       : { isActive: "Active" };
+
+    // defaultProduct 조건 추가
+    if (defaultProduct === "Yes") {
+      cond.defaultProduct = "Yes"; // defaultProduct 필드가 "Yes"인 경우만 필터링
+    }
+
+    // category 조건 추가 (배열에서 해당 값을 찾음)
+    if (category) {
+      cond.category = { $in: [category] }; // category 배열에 category 값이 포함된 경우
+    }
 
     let query = Product.find(cond).sort({ id: 1 });
     let response = { status: "success" };

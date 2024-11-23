@@ -4,6 +4,7 @@ const { getUserChatbots } = require("./chatbot.controller");
 const commentController = {};
 const Comment = require("../models/Comment");
 require("dotenv").config();
+
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
@@ -36,7 +37,7 @@ commentController.createComment = async (req, res) => {
     const savedUserComment = await newUserComment.save();
 
     const { systemMessage, personalityContent } =
-      openaiController.chatbotMessagePersonality(personality, 20);
+      openaiController.chatbotMessagePersonality(personality, 30);
 
     const formattedMessages = [{ role: "user", content }]; 
     let currentMessage = content; 
@@ -53,8 +54,8 @@ commentController.createComment = async (req, res) => {
     });
 
     let reply = completion.choices[0].message.content.trim();
-    if (reply.length > 20) {
-      reply = reply.substring(0, 20);
+    if (reply.length > 30) {
+      reply = reply.substring(0, 30);
     }
 
     formattedMessages.push({ role: "assistant", content: reply });
@@ -100,6 +101,7 @@ commentController.getComment = async (req, res) => {
         select: "name email",
       })
       .populate({
+        path: "chatbotId",
         path: "chatbotId",
         populate: {
           path: "product_id", 
@@ -161,7 +163,7 @@ commentController.createChatbotMessage = async (req, res) => {
       const chatbotId = chatbot._id; 
 
       const { systemMessage, personalityContent } =
-        openaiController.chatbotMessagePersonality(personality, 20);
+        openaiController.chatbotMessagePersonality(personality, 30);
 
       const formattedMessages = [{ role: "user", content }];
       let currentMessage = content; 
@@ -179,8 +181,8 @@ commentController.createChatbotMessage = async (req, res) => {
         });
 
         let reply = completion.choices[0].message.content.trim();
-        if (reply.length > 20) {
-          reply = reply.substring(0, 20);
+        if (reply.length > 30) {
+          reply = reply.substring(0, 30);
         }
 
         formattedMessages.push({ role: "assistant", content: reply });
