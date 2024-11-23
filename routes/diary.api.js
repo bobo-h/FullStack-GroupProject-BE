@@ -5,7 +5,6 @@ const commentController = require("../controllers/comment.controller");
 
 const router = express.Router();
 
-// 다이어리 생성 직후, 챗봇들 댓글 생성
 router.post(
   "/",
   authController.authenticate,
