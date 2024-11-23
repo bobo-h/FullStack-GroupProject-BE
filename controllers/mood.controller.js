@@ -36,7 +36,7 @@ moodController.getMoods = async (req, res) => {
     let response = { status: "success" };
     if (page) {
       query.skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE);
-      // 총 몇개의 페이지가 있는지?
+      
       // 데이터가 총 몇개 있는지 체크해서 페이지 사이즈로 나눈다.
       const totalItemNum = await Mood.countDocuments(cond);
       const totalPageNum = Math.ceil(totalItemNum / PAGE_SIZE);
