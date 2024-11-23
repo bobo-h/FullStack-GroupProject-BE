@@ -26,7 +26,7 @@ orderController.createOrder = async (req, res) => {
         });
 
         await newOrder.save()
-        res.status(200).json({ status: "success", orderNum: newOrder.orderNum, orderUserId: newOrder.userId})
+        res.status(200).json({ status: "success", orderNum: newOrder.orderNum, orderUserId: newOrder.userId })
 
     } catch (error) {
         return res.status(400).json({ status: "fail", message: error.message })
@@ -64,7 +64,7 @@ orderController.getOrder = async (req, res, next) => {
 
 orderController.getOrderList = async (req, res, next) => {
     try {
-        const { page = 1, ordernum, orderitem, orderemail } = req.query;
+        const { page = 1, ordernum, orderitem, orderemail, category } = req.query;
         let cond = {}
 
         if (ordernum) {
@@ -83,6 +83,11 @@ orderController.getOrderList = async (req, res, next) => {
             cond = {
                 email: { $regex: orderemail, $options: "i" },
             };
+        }
+
+        // category 조건 추가 (배열에서 해당 값을 찾음)
+        if (category) {
+            cond.productCategory = { $in: [category] }; // category 배열에 category 값이 포함된 경우
         }
 
         const orderList = await Order.find(cond)
