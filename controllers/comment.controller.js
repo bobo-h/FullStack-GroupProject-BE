@@ -10,8 +10,9 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 commentController.createComment = async (req, res) => {
   try {
+
     const { diaryId, content, parentCommentId, chatbotId, personality } =
-      req.body;
+      req.body; 
     let { userId } = req.body;
 
     if (!userId) {
@@ -38,8 +39,8 @@ commentController.createComment = async (req, res) => {
     const { systemMessage, personalityContent } =
       openaiController.chatbotMessagePersonality(personality, 30);
 
-    const formattedMessages = [{ role: "user", content }];
-    let currentMessage = content;
+    const formattedMessages = [{ role: "user", content }]; 
+    let currentMessage = content; 
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -61,10 +62,10 @@ commentController.createComment = async (req, res) => {
 
     const newChatbotComment = await Comment.create({
       diaryId,
-      userId: null,
+      userId: null, 
       chatbotId,
       content: reply,
-      parentCommentId: savedUserComment._id,
+      parentCommentId: savedUserComment._id, 
     });
 
     await newChatbotComment.save();
@@ -85,7 +86,7 @@ commentController.createComment = async (req, res) => {
 
 commentController.getComment = async (req, res) => {
   try {
-    const { diaryId } = req.params;
+    const { diaryId } = req.params; 
 
     if (!diaryId) {
       return res.status(400).json({
@@ -101,23 +102,24 @@ commentController.getComment = async (req, res) => {
       })
       .populate({
         path: "chatbotId",
+        path: "chatbotId",
         populate: {
-          path: "product_id",
+          path: "product_id", 
           select: "image",
         },
       })
-      .sort({ createdAt: 1 })
-      .lean();
+      .sort({ createdAt: 1 }) 
+      .lean(); 
 
     const commentMap = {};
     const topLevelComments = [];
 
     comments.forEach((comment) => {
-      comment.replies = [];
+      comment.replies = []; 
       commentMap[comment._id] = comment;
 
       if (!comment.parentCommentId) {
-        topLevelComments.push(comment);
+        topLevelComments.push(comment); 
       } else {
         if (commentMap[comment.parentCommentId]) {
           commentMap[comment.parentCommentId].replies.push(comment);
@@ -157,14 +159,14 @@ commentController.createChatbotMessage = async (req, res) => {
     const createdComments = [];
 
     for (const chatbot of userChatbotList) {
-      const { personality } = chatbot;
-      const chatbotId = chatbot._id;
+      const { personality } = chatbot; 
+      const chatbotId = chatbot._id; 
 
       const { systemMessage, personalityContent } =
         openaiController.chatbotMessagePersonality(personality, 30);
 
       const formattedMessages = [{ role: "user", content }];
-      let currentMessage = content;
+      let currentMessage = content; 
 
       for (let i = 0; i < 1; i++) {
         const completion = await openai.chat.completions.create({
@@ -187,10 +189,10 @@ commentController.createChatbotMessage = async (req, res) => {
 
         const newComment = await Comment.create({
           diaryId,
-          userId: null,
+          userId: null, 
           chatbotId,
-          content: reply,
-          parentCommentId: null,
+          content: reply, 
+          parentCommentId: null, 
         });
 
         await newComment.save();
