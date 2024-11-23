@@ -6,13 +6,13 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const userSchema = Schema(
   {
-    email: { type: String, required: true }, //unique 지움
+    email: { type: String, required: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
     birthday: { type: Date, default: "" },
     profileImage: { type: String, default: "" },
-    level: { type: String, default: "customer" }, // 2types : customer, admin
-    isDeleted: { type: Boolean, default: false }, // 유저 삭제 플러그 (로그인 상태 비활성화)
+    level: { type: String, default: "customer" },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

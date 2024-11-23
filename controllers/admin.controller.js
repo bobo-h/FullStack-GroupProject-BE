@@ -2,7 +2,6 @@ const User = require("../models/User");
 
 const adminController = {};
 
-// 모든 유저 리스트 가져오기
 adminController.getAllUser = async (req, res) => {
   try {
     const allUsers = await User.find({ isDeleted: false, level: "customer" });
@@ -18,17 +17,16 @@ adminController.getAllUser = async (req, res) => {
     res.status(400).json({ status: "fail", message: error.message });
   }
 };
-// 탈퇴 회원 but 탈퇴일로부터 90일이내 리스트 가져오기
+
 adminController.getIneligibleUser = async (req, res) => {
   try {
-    // 오늘 날짜에서 90일 전 계산
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    // 조건에 맞는 유저 검색
+
     const ineligibleUsers = await User.find({
-      isDeleted: true, // isDeleted가 true
-      level: "customer", // level이 customer
-      updatedAt: { $gte: ninetyDaysAgo }, // updatedAt이 90일 이내
+      isDeleted: true,
+      level: "customer",
+      updatedAt: { $gte: ninetyDaysAgo },
     });
 
     if (!ineligibleUsers)
@@ -41,17 +39,16 @@ adminController.getIneligibleUser = async (req, res) => {
     res.status(400).json({ status: "fail", message: error.message });
   }
 };
-// 탈퇴 회원 but 탈퇴일로부터 90일이 지난 리스트 가져오기
+
 adminController.getEligibleUser = async (req, res) => {
   try {
-    // 오늘 날짜에서 90일 전 계산
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    // 조건에 맞는 유저 검색
+
     const eligibleUsers = await User.find({
-      isDeleted: true, // isDeleted가 true
-      level: "customer", // level이 customer
-      updatedAt: { $lt: ninetyDaysAgo }, // updatedAt이 90일 이상
+      isDeleted: true,
+      level: "customer",
+      updatedAt: { $lt: ninetyDaysAgo },
     });
 
     if (!eligibleUsers)
@@ -65,7 +62,6 @@ adminController.getEligibleUser = async (req, res) => {
   }
 };
 
-// 관리자 리스트
 adminController.getAllAdmin = async (req, res) => {
   try {
     const allAdmins = await User.find({ isDeleted: false, level: "admin" });
@@ -76,7 +72,6 @@ adminController.getAllAdmin = async (req, res) => {
   }
 };
 
-// 역할 수정
 adminController.editLevel = async (req, res) => {
   try {
     const { id: userId } = req.params;
@@ -94,26 +89,24 @@ adminController.editLevel = async (req, res) => {
   }
 };
 
-// 탈퇴일로부터 90일 지난 회원목록 전부 삭제
 adminController.deleteAllEligibleUsers = async (req, res) => {
   try {
-    // 오늘 날짜에서 90일 전 계산
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    // 조건에 맞는 유저 검색
+
     const eligibleUsers = await User.find({
-      isDeleted: true, // isDeleted가 true
-      level: "customer", // level이 customer
-      updatedAt: { $lt: ninetyDaysAgo }, // updatedAt이 90일 이상
+      isDeleted: true,
+      level: "customer",
+      updatedAt: { $lt: ninetyDaysAgo },
     });
 
     if (!eligibleUsers)
       throw new Error(
         "탈퇴일로부터 90일이 지난 회원리스트가 존재하지 않습니다."
       );
-    // 유저들 삭제하기
+
     const result = await User.deleteMany({
-      _id: { $in: eligibleUsers.map((user) => user._id) }, // 필터링된 유저들의 _id로 삭제
+      _id: { $in: eligibleUsers.map((user) => user._id) },
     });
     res.status(200).json({
       status: "success",
@@ -123,12 +116,11 @@ adminController.deleteAllEligibleUsers = async (req, res) => {
     res.status(400).json({ status: "fail", message: error.message });
   }
 };
-// 유저 검색
+
 adminController.getSearchUsers = async (req, res) => {
   try {
     const { search, type } = req.query;
 
-    // 데이터를 임시 저장할 객체 생성
     let dataContainer = {};
     const mockRes = {
       status: (code) => {
@@ -140,7 +132,6 @@ adminController.getSearchUsers = async (req, res) => {
       },
     };
 
-    // type에 따라 다른 함수 호출
     switch (type) {
       case "allUser":
         await adminController.getAllUser(req, mockRes);
@@ -160,7 +151,6 @@ adminController.getSearchUsers = async (req, res) => {
           .json({ status: "fail", message: "유효하지 않은 타입입니다." });
     }
 
-    // 응답 데이터가 성공 상태인지 확인
     if (dataContainer.response?.status === "success") {
       let results =
         dataContainer.response.allUsers ||
@@ -169,7 +159,6 @@ adminController.getSearchUsers = async (req, res) => {
         dataContainer.response.allAdmins ||
         [];
       if (search) {
-        // 검색어로 필터링
         const regex = new RegExp(search, "i");
         results = results.filter(
           (user) => regex.test(user.name) || regex.test(user.email)
@@ -177,7 +166,6 @@ adminController.getSearchUsers = async (req, res) => {
       }
       return res.status(200).json({ status: "success", data: results });
     }
-    // 실패 상태 응답 반환
     return res
       .status(dataContainer.statusCode || 500)
       .json(dataContainer.response);

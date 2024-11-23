@@ -1,39 +1,33 @@
 const User = require("../models/User");
 const bcrpyt = require("bcryptjs");
-const dayjs = require("dayjs"); // 날짜 계산을 위해 dayjs 사용
+const dayjs = require("dayjs");
 
 const userController = {};
 
-// 회원가입
 userController.createUser = async (req, res) => {
   try {
     let { email, password, name, birthday, level, profileImage } = req.body;
-    // 이메일 중복검사
+
     const users = await User.find({ email });
-    //초기값 설정
+
     let eligibleForRegistration = false;
 
     if (users.length > 0) {
-      // isDeleted가 false인 사용자가 있는지 확인
       const existingActiveUser = users.find((user) => user.isDeleted === false);
       if (existingActiveUser) {
         throw new Error("이미 존재하는 유저입니다.");
       }
 
-      // isDeleted가 true인 사용자(회원탈퇴) 중
-      // 업데이트일(회원탈퇴일)로부터 90일이 지난 경우 확인
       const now = dayjs();
       eligibleForRegistration = (() => {
         const deletedUsers = users.filter(
           (user) => user.isDeleted === true && user.updatedAt
         );
 
-        // 가장 최근 updatedAt을 찾음
         const mostRecentDate = deletedUsers
           .map((user) => dayjs(user.updatedAt))
-          .sort((a, b) => b - a)[0]; // 최신 날짜가 맨 앞에 위치
+          .sort((a, b) => b - a)[0];
 
-        // 90일 이상 지났는지 확인
         return mostRecentDate && now.diff(mostRecentDate, "day") >= 90;
       })();
 
@@ -45,7 +39,6 @@ userController.createUser = async (req, res) => {
     }
 
     if (eligibleForRegistration || users.length === 0 || !users) {
-      // 비밀번호 암호화
       const salt = await bcrpyt.genSaltSync(10);
       password = await bcrpyt.hash(password, salt);
       const newUser = new User({
@@ -64,7 +57,6 @@ userController.createUser = async (req, res) => {
   }
 };
 
-//토큰 정보로 유저 가져오기
 userController.getUser = async (req, res) => {
   try {
     const { userId } = req;
@@ -78,11 +70,8 @@ userController.getUser = async (req, res) => {
   }
 };
 
-// 회원정보 수정
 userController.editUser = async (req, res) => {
   try {
-    //const { id } = req.params;
-    // 토큰에서 가져온 UserId
     const { userId } = req;
     const { name, birthday, profileImage } = req.body;
 
@@ -100,11 +89,8 @@ userController.editUser = async (req, res) => {
   }
 };
 
-//회원탈퇴
 userController.deleteUser = async (req, res) => {
   try {
-    //const { id } = req.params;
-    // 토큰에서 가져온 UserId
     const { userId } = req;
     const user = await User.findByIdAndUpdate(
       { _id: userId },

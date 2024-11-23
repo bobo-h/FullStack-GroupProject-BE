@@ -5,10 +5,9 @@ require("dotenv").config();
 const { OAuth2Client } = require("google-auth-library");
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const dayjs = require("dayjs"); // 날짜 계산을 위해 dayjs 사용
+const dayjs = require("dayjs");
 const authController = {};
 
-//이메일로 로그인
 authController.loginWithEmail = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -39,8 +38,6 @@ authController.loginWithGoogle = async (req, res) => {
     const { email, name } = ticket.getPayload();
     let users = await User.find({ email });
 
-    // isDeleted가 true인 구글 사용자(회원탈퇴) 중
-    // 업데이트일(회원탈퇴일)로부터 90일이 지나지 않은 경우를 확인
     let ineligibleForRegistration = false;
     let user = null;
     let sessionToken = null;
@@ -54,9 +51,8 @@ authController.loginWithGoogle = async (req, res) => {
       if (deletedUsers.length > 0) {
         const mostRecentDate = deletedUsers
           .map((user) => dayjs(user.updatedAt))
-          .sort((a, b) => b - a)[0]; // 최신 날짜가 맨 앞에 위치
+          .sort((a, b) => b - a)[0];
 
-        // 90일 미만이면 ineligibleForRegistration = true
         ineligibleForRegistration =
           mostRecentDate && now.diff(mostRecentDate, "day") < 90;
       }
@@ -67,7 +63,6 @@ authController.loginWithGoogle = async (req, res) => {
         );
       }
 
-      // DB에 isDeleted가 false인 유저가 있는 경우
       user = users.find((user) => user.isDeleted === false);
       if (user) {
         sessionToken = await user.generateToken();
@@ -76,7 +71,6 @@ authController.loginWithGoogle = async (req, res) => {
           .json({ status: "success", user, token: sessionToken });
       }
 
-      // DB에 isDeleted가 true인 유저가 있는 경우 (90일 이상 지난 상태)
       user = users.find((user) => user.isDeleted === true);
       if (user) {
         user.isDeleted = false;
@@ -87,8 +81,6 @@ authController.loginWithGoogle = async (req, res) => {
           .json({ status: "success", user, token: sessionToken });
       }
     }
-
-    // DB에 유저가 없는 경우 새로운 유저 생성
 
     const randomPassword = "" + Math.floor(Math.random() * 100000000);
     const salt = await bcrpyt.genSalt(10);
@@ -105,14 +97,11 @@ authController.loginWithGoogle = async (req, res) => {
     return res
       .status(200)
       .json({ status: "success", user, token: sessionToken });
-
-    //토큰발행 리턴
   } catch (error) {
     res.status(400).json({ status: "fail", message: error.message });
   }
 };
 
-// 토큰의 유효성 확인
 authController.authenticate = async (req, res, next) => {
   try {
     const tokenString = req.headers.authorization;
