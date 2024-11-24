@@ -64,6 +64,7 @@ MongoDB를 데이터베이스로 사용하며 RESTful API를 통해 클라이언
 ### 실행
 ```bash
 npm start
+```
 
 ---
 
